@@ -72,7 +72,7 @@ document.addEventListener('DOMContentLoaded', function() {
             appendMessage('bot', `Ok. Buscando e analisando dados para **${jogoParaAnalisar.time_casa} vs ${jogoParaAnalisar.time_fora}**. Aguarde...`);
             
             try {
-                const response = await fetch('https://analisador-apostas-dw3l.onrender.com', {
+                const response = await fetch('https://analisador-1.onrender.com', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(jogoParaAnalisar ),
