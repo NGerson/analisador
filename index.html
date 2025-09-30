@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestão PRO e Tips - Apostador Profissional</title>
+    <link rel="stylesheet" href="css/style.css"> 
+</head>
+<body>
+    <div class="container">
+        <h1>📊 Ferramenta PRO de Apostas</h1>
+
+        <div class="tabs">
+            <button id="btn-tips-tab" class="tab-button">1. Análise & Tips</button>
+            <button id="btn-gestao-tab" class="tab-button">2. Gestão de Banca PRO</button>
+        </div>
+
+        <div id="tips-tab" class="tab-content">
+            <h2>Análise de Jogo (Simulação SofaScore Data)</h2>
+            <div id="tip-chat" class="chat-container">
+                <p class="bot-message">Olá! Para começar a análise, digite "Quero Apostar" no chat abaixo.</p>
+            </div>
+            <div class="chat-input-area">
+                <input type="text" id="chat-input" placeholder="Digite 'Quero Apostar' para começar...">
+                <button id="btn-chat-enviar">Enviar</button>
+            </div>
+        </div>
+
+        <div id="gestao-tab" class="tab-content">
+            <h2>Controle de Banca e Alavancagem</h2>
+
+            <div class="config-form input-form">
+                <h3>Configuração Inicial</h3>
+                <input type="number" id="config-banca-inicial" placeholder="Banca Inicial (R$)" required>
+                <input type="number" id="config-meta-minima" placeholder="Meta Mínima (R$)" required>
+                <input type="number" id="config-stake-max" placeholder="Stake Máxima (Teto R$)" required>
+                <button id="btn-configurar-banca">Aplicar Configurações</button>
+            </div>
+            
+            <div id="status-panel" class="status-panel">
+                <p>Data Atual: <span id="data-hoje">--/--/----</span></p>
+                <p>Banca Atual: <span id="banca-atual">R$ 0.00</span></p>
+                <p>Stake Máxima Fixa: <span id="stake-max">R$ 0.00</span></p> 
+                <p>Apostas Hoje: <span id="apostas-hoje">0</span>/10</p>
+                <div id="alerta-risco" class="alerta"></div>
+            </div>
+
+            <div class="input-form">
+                <h3>Registro de Aposta</h3>
+                <input type="number" id="input-stake" placeholder="Stake (R$)" min="0.01" step="0.01" required> 
+                <input type="number" id="input-odd" placeholder="Odd" step="0.01" required>
+                <select id="input-resultado" required>
+                    <option value="">Resultado</option>
+                    <option value="win">WIN</option>
+                    <option value="red">RED</option>
+                    <option value="pending">EM ABERTO</option>
+                </select>
+                <input type="number" id="input-acrescimo" placeholder="Acréscimo de Ganho (R$)" value="0.00" step="0.01">
+                <button id="btn-registrar-aposta">Registrar Aposta</button>
+            </div>
+
+            <table id="tabela-apostas">
+                <thead>
+                    <tr>
+                        <th data-label="Data">Data</th>
+                        <th data-label="# do Dia"># do Dia</th>
+                        <th data-label="Stake (R$)">Stake (R$)</th>
+                        <th data-label="Odd">Odd</th>
+                        <th data-label="Resultado">Resultado</th>
+                        <th data-label="Ganho/Perda">Ganho/Perda</th>
+                        <th data-label="Acréscimo">Acréscimo</th>
+                        <th data-label="Banca Final">Banca Final</th>
+                        <th data-label="Ação">Ação</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Linhas de apostas serão inseridas aqui -->
+                </tbody>
+            </table>
+            <button id="reset-button">Resetar Todos os Dados</button>
+        </div>
+    </div>
+
+    <script src="js/script.js"></script>
+</body>
+</html>
