@@ -259,24 +259,31 @@ document.addEventListener('DOMContentLoaded', function() {
             UIElements.alertaRisco.textContent = `🏆 PARABÉNS! META ATINGIDA!`;
         }
     }
-    function openTab(tabName) {
-        esporteAtivo = tabName.replace('Tab', ''); // Define o esporte ativo
+    
+    // =========================================================
+    // FUNÇÃO DE NAVEGAÇÃO - CORRIGIDA
+    // =========================================================
+    function openTab(tabId) {
+        esporteAtivo = tabId; // Define o esporte ativo para a lógica do chat
+        
         const todasAbas = [UIElements.futebolTab, UIElements.nflTab, UIElements.nbaTab, UIElements.gestaoTab];
         const todosBotoes = [UIElements.btnFutebolTab, UIElements.btnNflTab, UIElements.btnNbaTab, UIElements.btnGestaoTab];
         
+        // Esconde todas as abas e remove a classe 'active' de todos os botões
         todasAbas.forEach(tab => tab.style.display = 'none');
         todosBotoes.forEach(btn => btn.classList.remove('active'));
 
-        if (tabName === 'futebol') {
+        // Mostra a aba e ativa o botão correto
+        if (tabId === 'futebol') {
             UIElements.futebolTab.style.display = 'block';
             UIElements.btnFutebolTab.classList.add('active');
-        } else if (tabName === 'nfl') {
+        } else if (tabId === 'nfl') {
             UIElements.nflTab.style.display = 'block';
             UIElements.btnNflTab.classList.add('active');
-        } else if (tabName === 'nba') {
+        } else if (tabId === 'nba') {
             UIElements.nbaTab.style.display = 'block';
             UIElements.btnNbaTab.classList.add('active');
-        } else if (tabName === 'gestao') {
+        } else if (tabId === 'gestao') {
             UIElements.gestaoTab.style.display = 'block';
             UIElements.btnGestaoTab.classList.add('active');
         }
