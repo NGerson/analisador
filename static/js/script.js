@@ -82,14 +82,19 @@ document.addEventListener('DOMContentLoaded', function() {
                 const analise = await response.json();
                 
                 appendMessage('bot', '--- 📊 **ANÁLISE CONCLUÍDA** 📊 ---');
-                if (analise.melhor_aposta) {
-                    const best = analise.melhor_aposta;
-                    appendMessage('bot', `**MELHOR ENTRADA IDENTIFICADA:**`);
-                    appendMessage('bot', `<strong>Mercado:</strong> ${best.mercado}  
-<strong>Entrada:</strong> ${best.entrada}  
-<strong>Odd Estimada:</strong> ${best.odd}`);
-                    appendMessage('bot', `<strong>Justificativa:</strong> <em>${best.justificativa}</em>`);
+                // Dentro da função processarComando, na parte que exibe a "melhor_aposta"
+
+             if (analise.melhor_aposta) {
+               const best = analise.melhor_aposta;
+                  appendMessage('bot', `**MELHOR ENTRADA IDENTIFICADA:**`);
+                 // LINHA MODIFICADA PARA INCLUIR A CONFIANÇA
+                   appendMessage('bot', `<strong>Mercado:</strong> ${best.mercado}  
+                  <strong>Entrada:</strong> ${best.entrada}  
+                  <strong>Odd Estimada:</strong> ${best.odd}  
+                    <strong>Confiança:</strong> ${best.confianca || 'N/A'}`);
+                   appendMessage('bot', `<strong>Justificativa:</strong> <em>${best.justificativa}</em>`);
                 }
+
                 if (analise.outras_opcoes && analise.outras_opcoes.length > 0) {
                     appendMessage('bot', `--- 💡 **OUTRAS OPÇÕES DE VALOR** ---`);
                     analise.outras_opcoes.forEach(opt => {

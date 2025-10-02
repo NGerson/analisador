@@ -8,23 +8,57 @@
 </head>
 <body>
     <div class="container">
-        <h1>📊 Ferramenta PRO de Apostas</h1>
+        <h1>📊 Tip's PRO  Apostas</h1>
 
         <div class="tabs">
-            <button id="btn-tips-tab" class="tab-button">1. Análise & Tips</button>
-            <button id="btn-gestao-tab" class="tab-button">2. Gestão de Banca PRO</button>
-        </div>
+           <button id="btn-futebol-tab" class="tab-button active">⚽ Futebol</button>
+           <button id="btn-nfl-tab" class="tab-button">🏈 NFL</button>
+           <button id="btn-nba-tab" class="tab-button">🏀 NBA</button>
+           <button id="btn-gestao-tab" class="tab-button">📊 Gestão</button>
+       </div>
 
-        <div id="tips-tab" class="tab-content">
-            <h2>Análise de Jogo Automatizada</h2>
-            <div id="tip-chat" class="chat-container">
-                <p class="bot-message">Olá! Para começar, digite "Quero Apostar" no chat abaixo.</p>
-            </div>
-            <div class="chat-input-area">
-                <input type="text" id="chat-input" placeholder="Digite 'Quero Apostar' para começar...">
-                <button id="btn-chat-enviar">Enviar</button>
-            </div>
-        </div>
+
+       <!-- O SEU CÓDIGO JÁ TEM ESTE DIV ABAIXO -->
+<div id="tips-tab" class="tab-content">
+    <h2>Análise de Jogo Automatizada - Futebol</h2>
+    <div id="tip-chat-futebol" class="chat-container">
+        <p class="bot-message">Olá! Para analisar um jogo de **Futebol**, digite "Quero Apostar" abaixo.</p>
+    </div>
+    <div class="chat-input-area">
+        <input type="text" id="chat-input-futebol" placeholder="Digite 'Quero Apostar' para começar...">
+        <button id="btn-chat-enviar-futebol">Enviar</button>
+    </div>
+</div>
+
+<!-- ADICIONE ESTES DOIS NOVOS BLOCOS AQUI -->
+
+<div id="nfl-tab" class="tab-content" style="display: none;">
+    <h2>Análise de Jogo Automatizada - NFL</h2>
+    <div id="tip-chat-nfl" class="chat-container">
+        <p class="bot-message">Olá! Para analisar um jogo da **NFL**, digite "Quero Apostar" abaixo.</p>
+    </div>
+    <div class="chat-input-area">
+        <input type="text" id="chat-input-nfl" placeholder="Digite 'Quero Apostar' para começar...">
+        <button id="btn-chat-enviar-nfl">Enviar</button>
+    </div>
+</div>
+
+<div id="nba-tab" class="tab-content" style="display: none;">
+    <h2>Análise de Jogo Automatizada - NBA</h2>
+    <div id="tip-chat-nba" class="chat-container">
+        <p class="bot-message">Olá! Para analisar um jogo da **NBA**, digite "Quero Apostar" abaixo.</p>
+    </div>
+    <div class="chat-input-area">
+        <input type="text" id="chat-input-nba" placeholder="Digite 'Quero Apostar' para começar...">
+        <button id="btn-chat-enviar-nba">Enviar</button>
+    </div>
+</div>
+
+<!-- O SEU CÓDIGO JÁ TEM ESTE DIV DA GESTÃO DE BANCA ABAIXO -->
+<div id="gestao-tab" class="tab-content">
+    <!-- ... todo o conteúdo da gestão de banca ... -->
+</div>
+
 
         <div id="gestao-tab" class="tab-content">
             <h2>Controle de Banca e Alavancagem</h2>
