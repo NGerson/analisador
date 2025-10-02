@@ -260,20 +260,18 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    // =========================================================
-    // FUNÇÃO DE NAVEGAÇÃO - CORRIGIDA
-    // =========================================================
     function openTab(tabId) {
-        esporteAtivo = tabId; // Define o esporte ativo para a lógica do chat
+        esporteAtivo = tabId;
+        
+        document.body.classList.remove('theme-futebol', 'theme-nfl', 'theme-nba', 'theme-gestao');
+        document.body.classList.add(`theme-${tabId}`);
         
         const todasAbas = [UIElements.futebolTab, UIElements.nflTab, UIElements.nbaTab, UIElements.gestaoTab];
         const todosBotoes = [UIElements.btnFutebolTab, UIElements.btnNflTab, UIElements.btnNbaTab, UIElements.btnGestaoTab];
         
-        // Esconde todas as abas e remove a classe 'active' de todos os botões
         todasAbas.forEach(tab => tab.style.display = 'none');
         todosBotoes.forEach(btn => btn.classList.remove('active'));
 
-        // Mostra a aba e ativa o botão correto
         if (tabId === 'futebol') {
             UIElements.futebolTab.style.display = 'block';
             UIElements.btnFutebolTab.classList.add('active');
@@ -293,31 +291,25 @@ document.addEventListener('DOMContentLoaded', function() {
     // INICIALIZAÇÃO E EVENTOS
     // =========================================================
     function init() {
-        // Navegação por Abas
         UIElements.btnFutebolTab.addEventListener('click', () => openTab('futebol'));
         UIElements.btnNflTab.addEventListener('click', () => openTab('nfl'));
         UIElements.btnNbaTab.addEventListener('click', () => openTab('nba'));
         UIElements.btnGestaoTab.addEventListener('click', () => openTab('gestao'));
 
-        // Eventos de Chat para cada esporte
         Object.keys(UIElements.chats).forEach(esporte => {
             const chatUI = UIElements.chats[esporte];
             chatUI.btn.addEventListener('click', () => processarComando(esporte));
             chatUI.input.addEventListener('keyup', (e) => {
-                if (e.key === 'Enter') {
-                    processarComando(esporte);
-                }
+                if (e.key === 'Enter') processarComando(esporte);
             });
         });
 
-        // Eventos da Gestão de Banca
         UIElements.btnConfigurarBanca.addEventListener('click', configurarBanca);
         UIElements.btnRegistrarAposta.addEventListener('click', adicionarAposta);
         UIElements.btnReset.addEventListener('click', resetarDados);
 
-        // Carregar dados e definir estado inicial
         carregarDados();
-        openTab('futebol'); // Começa na aba de futebol
+        openTab('futebol');
     }
 
     init();

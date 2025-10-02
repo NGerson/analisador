@@ -3,21 +3,26 @@
 /* ========================================================= */
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background-color: #121212; /* Fundo Escuro PRO */
     color: #e0e0e0;
     margin: 0;
     padding: 0;
     line-height: 1.6;
+    background-size: cover;
+    background-position: center center;
+    background-attachment: fixed;
+    transition: background-color 0.5s ease;
 }
 
 .container {
     max-width: 950px;
     margin: 25px auto;
-    padding: 15px;
+    padding: 25px;
+    border-radius: 15px;
+    backdrop-filter: blur(3px);
+    background-color: rgba(0, 0, 0, 0.2);
 }
 
 h1 {
-    color: #00aaff;
     text-align: center;
     margin-bottom: 20px;
     font-size: 1.8em;
@@ -33,24 +38,18 @@ h1 {
     border-bottom: 2px solid #333;
 }
 .tab-button {
-    background-color: #1f1f1f;
-    color: #00aaff;
+    background-color: transparent;
     border: none;
-    padding: 10px 20px;
+    padding: 12px 24px;
     cursor: pointer;
     font-size: 1.1em;
-    transition: background-color 0.3s, color 0.3s;
-    border-radius: 5px 5px 0 0;
+    font-weight: bold;
+    border-radius: 8px 8px 0 0;
     margin-right: 5px;
+    transition: color 0.5s ease, background-color 0.3s ease;
 }
 .tab-button:hover {
-    background-color: #2c2c2c;
-}
-.tab-button.active {
-    background-color: #00aaff;
-    color: #121212;
-    font-weight: bold;
-    border-bottom: 2px solid #00aaff;
+    filter: brightness(1.2);
 }
 .tab-content {
     display: none;
@@ -60,16 +59,11 @@ h1 {
 .tab-content.active {
     display: block;
 }
-
-@keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-}
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
 /* CHAT DE TIPS */
 .chat-container {
     height: 250px;
-    background-color: #2c2c2c;
     border: 1px solid #444;
     border-radius: 8px;
     padding: 10px;
@@ -78,30 +72,14 @@ h1 {
     display: flex;
     flex-direction: column;
 }
-.bot-message {
-    color: #00aaff;
-    font-style: italic;
-    margin-bottom: 8px;
-    align-self: flex-start;
-    max-width: 80%;
-}
-.user-message {
-    color: #e0e0e0;
-    text-align: right;
-    margin-bottom: 8px;
-    align-self: flex-end;
-    max-width: 80%;
-}
-.chat-input-area {
-    display: flex;
-    gap: 10px;
-}
+.bot-message { font-style: italic; margin-bottom: 8px; align-self: flex-start; max-width: 80%; }
+.user-message { text-align: right; margin-bottom: 8px; align-self: flex-end; max-width: 80%; }
+.chat-input-area { display: flex; gap: 10px; }
 
 /* ========================================================= */
-/* FORMULÁRIO GERAL (input-form e config-form) */
+/* FORMULÁRIO GERAL */
 /* ========================================================= */
 .input-form {
-    background-color: #2c2c2c;
     padding: 20px;
     border-radius: 10px;
     margin-bottom: 30px;
@@ -118,9 +96,7 @@ h1 {
     margin-bottom: 15px;
     font-size: 1.4em;
 }
-.input-form input, 
-.input-form select,
-#chat-input {
+.input-form input, .input-form select, #chat-input-futebol, #chat-input-nfl, #chat-input-nba {
     padding: 12px;
     border-radius: 6px;
     border: 1px solid #444;
@@ -129,39 +105,24 @@ h1 {
     flex: 1 1 180px; 
     font-size: 1em;
 }
-.input-form button,
-#chat-input-area button {
+.input-form button, #chat-input-area button {
     padding: 12px 20px;
-    background-color: #00aaff;
     color: white;
     border: none;
     border-radius: 6px;
     cursor: pointer;
     font-weight: bold;
-    transition: background-color 0.3s, transform 0.1s;
     flex: 0 1 auto;
     font-size: 1em;
+    transition: filter 0.2s ease;
 }
-.input-form button:hover,
-#chat-input-area button:hover {
-    background-color: #007bbd;
-}
-#reset-button {
-    background-color: #ff3333;
-    color: white;
-    border: none;
-    padding: 10px 15px;
-    border-radius: 6px;
-    cursor: pointer;
-    font-weight: bold;
-    margin-top: 20px;
-}
+.input-form button:hover, #chat-input-area button:hover { filter: brightness(1.2); }
+#reset-button { background-color: #ff3333; color: white; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer; font-weight: bold; margin-top: 20px; }
 
 /* ========================================================= */
 /* PAINEL DE STATUS E ALERTAS */
 /* ========================================================= */
 .status-panel {
-    background-color: #1f1f1f;
     padding: 15px;
     border-radius: 10px;
     margin-bottom: 25px;
@@ -170,136 +131,53 @@ h1 {
     flex-wrap: wrap; 
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
 }
-.status-panel p {
-    margin: 8px 10px;
-    font-size: 1.1em;
-    font-weight: 500;
-}
-.status-panel span {
-    font-weight: bold;
-    color: #00aaff;
-}
-
-/* ESTILIZAÇÃO DOS ALERTAS */
-.alerta {
-    padding: 12px;
-    margin-top: 15px;
-    font-weight: bold;
-    text-align: center;
-    border-radius: 6px;
-    width: 100%;
-    display: none; 
-    animation: fadeIn 0.5s;
-}
-.alerta.ativo {
-    display: block;
-}
+.status-panel p { margin: 8px 10px; font-size: 1.1em; font-weight: 500; }
+.alerta { padding: 12px; margin-top: 15px; font-weight: bold; text-align: center; border-radius: 6px; width: 100%; display: none; animation: fadeIn 0.5s; }
+.alerta.ativo { display: block; }
 .alerta-stop { background-color: #ff3333; color: white; } 
 .alerta-limite { background-color: #ffcc00; color: #121212; } 
 
 /* ========================================================= */
-/* TABELA DE APOSTAS RESPONSIVA */
+/* TABELA DE APOSTAS */
 /* ========================================================= */
-#tabela-apostas {
-    width: 100%;
-    border-collapse: collapse;
-    background-color: #1f1f1f;
-    border-radius: 10px;
-    overflow: hidden;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
-}
-#tabela-apostas th, 
-#tabela-apostas td {
-    padding: 12px;
-    text-align: center;
-    border-bottom: 1px solid #333;
-}
-#tabela-apostas thead th {
-    background-color: #2c2c2c;
-    color: #00aaff;
-    font-weight: bold;
-    text-transform: uppercase;
-    font-size: 0.9em;
-}
-
-/* Cores dos Resultados */
+#tabela-apostas { width: 100%; border-collapse: collapse; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4); }
+#tabela-apostas th, #tabela-apostas td { padding: 12px; text-align: center; border-bottom: 1px solid #333; }
+#tabela-apostas thead th { font-weight: bold; text-transform: uppercase; font-size: 0.9em; }
 .win { color: #4CAF50; font-weight: bold; }
 .red { color: #FF6347; font-weight: bold; }
 .pending { color: #FFA500; font-weight: bold; } 
-
-/* Botões de Ação para 'Em Aberto' */
-.btn-fechar {
-    background-color: #007bbd;
-    color: white;
-    border: none;
-    padding: 6px 10px;
-    cursor: pointer;
-    border-radius: 4px;
-    font-size: 0.85em;
-    margin: 2px;
-    transition: background-color 0.3s;
-}
-.btn-fechar:hover {
-    background-color: #005f99;
-}
+.btn-fechar { background-color: #007bbd; color: white; border: none; padding: 6px 10px; cursor: pointer; border-radius: 4px; font-size: 0.85em; margin: 2px; transition: background-color 0.3s; }
+.btn-fechar:hover { background-color: #005f99; }
 
 /* ========================================================= */
-/* RESPONSIVIDADE (MOBILE FIRST) */
+/* TEMAS ESPORTIVOS E VISUAIS */
+/* ========================================================= */
+body.theme-futebol { --cor-primaria: #00aaff; --cor-fundo-container: #2c2c2c; --cor-fundo-principal: #121212; --imagem-fundo: linear-gradient(rgba(18, 18, 18, 0.9), rgba(18, 18, 18, 0.99)), url('https://images.unsplash.com/photo-1553779429-045a3e483424?q=80&w=2070&auto=format&fit=crop' ); }
+body.theme-nfl { --cor-primaria: #d4a04c; --cor-fundo-container: #1a2d1a; --cor-fundo-principal: #0d1a0d; --imagem-fundo: linear-gradient(rgba(13, 26, 13, 0.9), rgba(13, 26, 13, 0.99)), url('https://images.unsplash.com/photo-1574020982407-6a04e6a?q=80&w=1932&auto=format&fit=crop' ); }
+body.theme-nba { --cor-primaria: #f27a24; --cor-fundo-container: #332d2a; --cor-fundo-principal: #1a1715; --imagem-fundo: linear-gradient(rgba(26, 23, 21, 0.9), rgba(26, 23, 21, 0.99)), url('https://images.unsplash.com/photo-1546519638-68e109498ffc?q=80&w=2070&auto=format&fit=crop' ); }
+body.theme-gestao { --cor-primaria: #4CAF50; --cor-fundo-container: #2a2a3a; --cor-fundo-principal: #1a1a2a; --imagem-fundo: none; }
+
+/* Aplicação das Variáveis */
+body { background-color: var(--cor-fundo-principal); background-image: var(--imagem-fundo); }
+h1, .status-panel span, .tab-button, #tabela-apostas thead th, .bot-message { color: var(--cor-primaria); transition: color 0.5s ease; }
+.input-form, .status-panel, #tabela-apostas, .chat-container { background-color: var(--cor-fundo-container); transition: background-color 0.5s ease; }
+.tab-button.active { background-color: var(--cor-primaria); color: var(--cor-fundo-principal); border-bottom-color: var(--cor-primaria); }
+.input-form button, #chat-input-area button { background-color: var(--cor-primaria); }
+
+/* ========================================================= */
+/* RESPONSIVIDADE */
 /* ========================================================= */
 @media (max-width: 768px) {
-    .container {
-        margin: 10px auto;
-        padding: 10px;
-    }
-    .status-panel p {
-        flex-basis: 45%; 
-        text-align: center;
-        margin: 5px 0;
-    }
-    .input-form input, 
-    .input-form select,
-    .input-form button,
-    #chat-input,
-    #chat-input-area button {
-        flex: 1 1 100%; 
-    }
+    .container { margin: 10px auto; padding: 10px; }
+    .status-panel p { flex-basis: 45%; text-align: center; margin: 5px 0; }
+    .input-form input, .input-form select, .input-form button, #chat-input-area input, #chat-input-area button { flex: 1 1 100%; }
 }
-
 @media (max-width: 600px) {
-    #tabela-apostas thead {
-        display: none;
-    }
-    #tabela-apostas tr {
-        display: block;
-        margin-bottom: 15px;
-        border: 1px solid #333;
-        border-radius: 5px;
-    }
-    #tabela-apostas td {
-        display: block;
-        text-align: right;
-        border-bottom: 1px solid #333;
-        position: relative;
-        padding: 10px 10px 10px 45%;
-    }
-    #tabela-apostas td:last-child {
-        border-bottom: none;
-    }
-    #tabela-apostas td::before {
-        content: attr(data-label);
-        position: absolute;
-        left: 10px;
-        font-weight: bold;
-        color: #888;
-        text-transform: uppercase;
-        text-align: left;
-        width: 40%;
-    }
-    #tabela-apostas td[data-label="Ação"] {
-        text-align: center;
-        padding-left: 10px;
-    }
-    #tabela-apostas td[data-label="Ação"]::before {
-        content: ""; 
-    }
+    #tabela-apostas thead { display: none; }
+    #tabela-apostas tr { display: block; margin-bottom: 15px; border: 1px solid #333; border-radius: 5px; }
+    #tabela-apostas td { display: block; text-align: right; border-bottom: 1px solid #333; position: relative; padding: 10px 10px 10px 45%; }
+    #tabela-apostas td:last-child { border-bottom: none; }
+    #tabela-apostas td::before { content: attr(data-label); position: absolute; left: 10px; font-weight: bold; color: #888; text-transform: uppercase; text-align: left; width: 40%; }
+    #tabela-apostas td[data-label="Ação"] { text-align: center; padding-left: 10px; }
+    #tabela-apostas td[data-label="Ação"]::before { content: ""; }
 }
