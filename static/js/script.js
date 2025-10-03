@@ -1,5 +1,5 @@
 // =================================================================
-// ARQUIVO script.js - VERSÃO FINAL COM INDENTAÇÃO CORRIGIDA
+// ARQUIVO script.js - VERSÃO FINAL COM LÓGICA DE EVENTOS CORRIGIDA
 // =================================================================
 document.addEventListener('DOMContentLoaded', function() {
 
@@ -96,7 +96,7 @@ document.addEventListener('DOMContentLoaded', function() {
         UIElements.tabContents.forEach(content => content.classList.remove('active'));
         UIElements.tabs.forEach(tab => tab.classList.remove('active'));
         const activeContent = document.getElementById(`${tabName}-tab`);
-        const activeTab = document.querySelector(`.tab-button[onclick*="'${tabName}'"]`);
+        const activeTab = document.querySelector(`.tab-button[data-tab="${tabName}"]`);
         if (activeContent) activeContent.classList.add('active');
         if (activeTab) activeTab.classList.add('active');
     }
@@ -390,7 +390,7 @@ ${listaFormatada}`;
         openTab('futebol');
 
         UIElements.tabs.forEach(tab => {
-            const tabName = tab.getAttribute('onclick').match(/'([^']+)'/)[1];
+            const tabName = tab.dataset.tab;
             tab.addEventListener('click', () => openTab(tabName));
         });
 
@@ -398,7 +398,10 @@ ${listaFormatada}`;
             const chatUI = UIElements.chats[esporte];
             chatUI.sendButton.addEventListener('click', () => processarComando(esporte));
             chatUI.input.addEventListener('keyup', (event) => {
-                if (event.key === 'Enter') processarComando(esporte);
+                if (event.key === 'Enter') {
+                    event.preventDefault(); // Impede o comportamento padrão do Enter
+                    processarComando(esporte);
+                }
             });
         });
 
