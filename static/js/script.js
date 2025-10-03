@@ -1,5 +1,5 @@
 // =================================================================
-// ARQUIVO script.js - VERSÃO FINAL COM LÓGICA DE EVENTOS CORRIGIDA
+// ARQUIVO script.js - VERSÃO FINAL COM CORREÇÃO DO 'VS'
 // =================================================================
 document.addEventListener('DOMContentLoaded', function() {
 
@@ -145,7 +145,9 @@ ${listaFormatada}`;
             return;
         }
         if (chatState.state === 'waiting_game') {
-            const times = comando.split(' vs ');
+            // CORREÇÃO APLICADA AQUI
+            const times = comando.toLowerCase().split(' vs '); 
+            
             if (times.length !== 2) {
                 appendMessageToChat(chatUI.chatContainer, 'bot', "Formato inválido. Use 'Time A vs Time B'.");
                 return;
@@ -399,7 +401,7 @@ ${listaFormatada}`;
             chatUI.sendButton.addEventListener('click', () => processarComando(esporte));
             chatUI.input.addEventListener('keyup', (event) => {
                 if (event.key === 'Enter') {
-                    event.preventDefault(); // Impede o comportamento padrão do Enter
+                    event.preventDefault();
                     processarComando(esporte);
                 }
             });
