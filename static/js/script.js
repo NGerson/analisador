@@ -230,7 +230,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 cell.textContent = value;
             });
             newRow.cells[4].classList.add(aposta.resultado);
-            if (aposta.resultado === 'pending') {
+            if (apota.resultado === 'pending') {
                 const actionCell = newRow.cells[8];
                 const btnWin = document.createElement('button');
                 btnWin.textContent = 'WIN';
@@ -291,11 +291,13 @@ document.addEventListener('DOMContentLoaded', function() {
     // INICIALIZAÇÃO E EVENTOS
     // =========================================================
     function init() {
+        // Navegação por Abas - CORRIGIDO
         UIElements.btnFutebolTab.addEventListener('click', () => openTab('futebol'));
         UIElements.btnNflTab.addEventListener('click', () => openTab('nfl'));
         UIElements.btnNbaTab.addEventListener('click', () => openTab('nba'));
         UIElements.btnGestaoTab.addEventListener('click', () => openTab('gestao'));
 
+        // Eventos de Chat para cada esporte
         Object.keys(UIElements.chats).forEach(esporte => {
             const chatUI = UIElements.chats[esporte];
             chatUI.btn.addEventListener('click', () => processarComando(esporte));
@@ -304,10 +306,12 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
 
+        // Eventos da Gestão de Banca
         UIElements.btnConfigurarBanca.addEventListener('click', configurarBanca);
         UIElements.btnRegistrarAposta.addEventListener('click', adicionarAposta);
         UIElements.btnReset.addEventListener('click', resetarDados);
 
+        // Carregar dados e definir estado inicial
         carregarDados();
         openTab('futebol');
     }
