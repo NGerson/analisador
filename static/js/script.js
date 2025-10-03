@@ -1,333 +1,463 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // =========================================================
-    // MAPEAMENTO DE ELEMENTOS DO DOM
-    // =========================================================
-    const UIElements = {
-        // Abas e Botões de Abas
-        btnFutebolTab: document.getElementById('btn-futebol-tab'),
-        btnNflTab: document.getElementById('btn-nfl-tab'),
-        btnNbaTab: document.getElementById('btn-nba-tab'),
-        btnGestaoTab: document.getElementById('btn-gestao-tab'),
-        futebolTab: document.getElementById('futebol-tab'),
-        nflTab: document.getElementById('nfl-tab'),
-        nbaTab: document.getElementById('nba-tab'),
-        gestaoTab: document.getElementById('gestao-tab'),
-        // Chats e Inputs de Análise
-        chats: {
-            futebol: { chat: document.getElementById('tip-chat-futebol'), input: document.getElementById('chat-input-futebol'), btn: document.getElementById('btn-chat-enviar-futebol') },
-            nfl: { chat: document.getElementById('tip-chat-nfl'), input: document.getElementById('chat-input-nfl'), btn: document.getElementById('btn-chat-enviar-nfl') },
-            nba: { chat: document.getElementById('tip-chat-nba'), input: document.getElementById('chat-input-nba'), btn: document.getElementById('btn-chat-enviar-nba') },
-        },
-        // Gestão de Banca
-        bancaAtual: document.getElementById('banca-atual'),
-        stakeMax: document.getElementById('stake-max'),
-        apostasHoje: document.getElementById('apostas-hoje'),
-        alertaRisco: document.getElementById('alerta-risco'),
-        tabelaBody: document.querySelector('#tabela-apostas tbody'),
-        dataHoje: document.getElementById('data-hoje'),
-        configBancaInicial: document.getElementById('config-banca-inicial'),
-        configMetaMinima: document.getElementById('config-meta-minima'),
-        configStakeMax: document.getElementById('config-stake-max'),
-        btnConfigurarBanca: document.getElementById('btn-configurar-banca'),
-        btnRegistrarAposta: document.getElementById('btn-registrar-aposta'),
-        btnReset: document.getElementById('reset-button'),
-        inputStake: document.getElementById('input-stake'),
-        inputOdd: document.getElementById('input-odd'),
-        inputResultado: document.getElementById('input-resultado'),
-        inputAcrescimo: document.getElementById('input-acrescimo'),
-    };
+    // ... (código anterior do script.js) ...
 
-    // =========================================================
-    // VARIÁVEIS DE ESTADO
-    // =========================================================
-    let chatStates = { futebol: 'initial', nfl: 'initial', nba: 'initial' };
-    let jogoParaAnalisar = {};
-    let esporteAtivo = 'futebol';
-    let bancaAtual = 0.00, apostasHoje = 0, resultadosDoDia = [], apostasRegistradas = [];
-    let BANCA_INICIAL = 30.00, META_MINIMA = 200.00, TETO_MAXIMO_STAKE = 3.00;
-    const LIMITE_APOSTAS_DIARIO = 10, LIMITE_RED_SEQUENCIAL = 3;
-
-    // =========================================================
-    // LÓGICA DE ANÁLISE (TIPS) COM API
-    // =========================================================
-    function appendMessage(esporte, sender, message) {
-        const chatEl = UIElements.chats[esporte].chat;
-        const msgEl = document.createElement('p');
-        msgEl.className = sender === 'bot' ? 'bot-message' : 'user-message';
-        msgEl.innerHTML = message.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-        chatEl.appendChild(msgEl);
-        chatEl.scrollTop = chatEl.scrollHeight;
-    }
-
-    async function processarComando(esporte) {
-        const chatUI = UIElements.chats[esporte];
-        const comando = chatUI.input.value.trim();
-        if (comando === '') return;
-        appendMessage(esporte, 'user', comando);
-        chatUI.input.value = '';
-
-        let state = chatStates[esporte];
-
-        if (state === 'initial' && comando.toLowerCase().includes('quero apostar')) {
-            appendMessage(esporte, 'bot', "Excelente! Qual jogo você quer analisar? Use o formato **'Time A vs Time B'**.");
-            chatStates[esporte] = 'waiting_game';
-        } else if (state === 'waiting_game') {
-            const times = comando.split(/ vs | x /i);
-            if (times.length !== 2) {
-                appendMessage(esporte, 'bot', "Formato inválido. Por favor, use **'Time A vs Time B'**.");
-                return;
+    // NOVA FUNÇÃO para buscar e exibir os campeonatos
+    async function carregarCampeonatosDisponiveis() {
+        try {
+            // A URL completa para o endpoint no Render
+            const url = `${window.location.origin}/campeonatos`;
+            const response = await fetch(url);
+            if (!response.ok) {
+                throw new Error('Não foi possível carregar a lista de campeonatos.');
             }
-            jogoParaAnalisar = { time_casa: times[0].trim(), time_fora: times[1].trim(), esporte: esporte };
-            appendMessage(esporte, 'bot', `Entendido. E qual o campeonato/liga para este jogo?`);
-            chatStates[esporte] = 'waiting_league';
-        } else if (state === 'waiting_league') {
-            jogoParaAnalisar.campeonato = comando;
-            appendMessage(esporte, 'bot', `Ok. Buscando e analisando dados para **${jogoParaAnalisar.time_casa} vs ${jogoParaAnalisar.time_fora}**. Aguarde...`);
+            const campeonatos = await response.json();
             
-            try {
-                const response = await fetch('/analisar', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(jogoParaAnalisar),
-                });
-                if (!response.ok) throw new Error('O servidor retornou um erro.');
-                const analise = await response.json();
-                
-                appendMessage(esporte, 'bot', '--- 📊 **ANÁLISE CONCLUÍDA** 📊 ---');
-                if (analise.melhor_aposta) {
-                    const best = analise.melhor_aposta;
-                    appendMessage(esporte, 'bot', `**MELHOR ENTRADA IDENTIFICADA:**`);
-                    appendMessage(esporte, 'bot', `<strong>Mercado:</strong> ${best.mercado}  
-<strong>Entrada:</strong> ${best.entrada}  
-<strong>Odd Estimada:</strong> ${best.odd}  
-<strong>Confiança:</strong> ${best.confianca || 'N/A'}`);
-                    appendMessage(esporte, 'bot', `<strong>Justificativa:</strong> <em>${best.justificativa}</em>`);
-                }
-                if (analise.outras_opcoes && analise.outras_opcoes.length > 0) {
-                    appendMessage(esporte, 'bot', `--- 💡 **OUTRAS OPÇÕES DE VALOR** ---`);
-                    analise.outras_opcoes.forEach(opt => {
-                         appendMessage(esporte, 'bot', `<strong>Mercado:</strong> ${opt.mercado}  
-<strong>Entrada:</strong> ${opt.entrada} (${opt.odd})`);
-                    });
-                }
-            } catch (error) {
-                console.error('Erro ao contatar a API:', error);
-                appendMessage(esporte, 'bot', 'Desculpe, não consegui conectar ao servidor de análise.');
-            } finally {
-                chatStates[esporte] = 'initial';
-                jogoParaAnalisar = {};
-                appendMessage(esporte, 'bot', "Análise finalizada. Digite **'Quero Apostar'** para um novo jogo.");
-            }
-        } else {
-            appendMessage(esporte, 'bot', "Comando não reconhecido. Digite **'Quero Apostar'** para iniciar.");
+            // Formata a lista para exibição
+            const listaFormatada = campeonatos.map(c => `• ${c.charAt(0).toUpperCase() + c.slice(1)}`).join('  
+');
+            
+            const mensagem = `Para análise com dados reais, use um dos seguintes campeonatos:  
+  
+${listaFormatada}`;
+            
+            // Adiciona a mensagem ao chat de futebol
+            const chatFutebol = UIElements.chats.futebol.chatContainer;
+            const msgEl = document.createElement('p');
+            msgEl.classList.add('bot-message', 'info-message'); // Adiciona uma classe para estilização opcional
+            msgEl.innerHTML = mensagem; // Usa innerHTML para renderizar as quebras de linha
+            chatFutebol.appendChild(msgEl);
+            chatFutebol.scrollTop = chatFutebol.scrollHeight;
+
+        } catch (error) {
+            console.error("Erro ao carregar campeonatos:", error);
+            // Adiciona uma mensagem de erro no chat se a busca falhar
+            const chatFutebol = UIElements.chats.futebol.chatContainer;
+            appendMessageToChat(chatFutebol, 'bot', 'Não foi possível carregar a lista de campeonatos disponíveis no momento.');
         }
     }
 
-    // =========================================================
-    // LÓGICA DE GESTÃO DE BANCA E UI
-    // =========================================================
-    function getTodayDate() { return new Date().toLocaleDateString('pt-BR'); }
+    // Função init (no final do arquivo)
+    function init() {
+        // ... (código anterior da função init) ...
+
+        // CHAMA A NOVA FUNÇÃO ao inicializar a aplicação
+        carregarCampeonatosDisponiveis();
+    }
+
+    init();
+});
+
+// O resto do seu script.js (UIElements, openTab, processarComando, etc.) permanece aqui.
+// Para garantir, aqui está o arquivo completo:
+
+document.addEventListener('DOMContentLoaded', function() {
+
+    const UIElements = {
+        tabs: document.querySelectorAll('.tab-button'),
+        tabContents: document.querySelectorAll('.tab-content'),
+        
+        // Mapeamento para cada aba de esporte
+        chats: {
+            futebol: {
+                chatContainer: document.getElementById('chat-futebol'),
+                input: document.getElementById('chat-input-futebol'),
+                sendButton: document.getElementById('send-button-futebol')
+            },
+            nfl: {
+                chatContainer: document.getElementById('chat-nfl'),
+                input: document.getElementById('chat-input-nfl'),
+                sendButton: document.getElementById('send-button-nfl')
+            },
+            nba: {
+                chatContainer: document.getElementById('chat-nba'),
+                input: document.getElementById('chat-input-nba'),
+                sendButton: document.getElementById('send-button-nba')
+            }
+        },
+
+        // Gestão de Banca
+        bancaAtualEl: document.getElementById('banca-atual'),
+        stakeMaxEl: document.getElementById('stake-max'),
+        apostasHojeEl: document.getElementById('apostas-hoje'),
+        alertaRiscoEl: document.getElementById('alerta-risco'),
+        tabelaBody: document.querySelector('#tabela-apostas tbody'),
+        dataHojeEl: document.getElementById('data-hoje'),
+        configBancaInicialEl: document.getElementById('config-banca-inicial'),
+        configMetaMinimaEl: document.getElementById('config-meta-minima'),
+        configStakeMaxEl: document.getElementById('config-stake-max'),
+        btnConfig: document.querySelector('.config-form button'),
+        btnAddAposta: document.querySelector('.input-form button'),
+        btnReset: document.getElementById('reset-button')
+    };
+
+    let bancaAtual = 0.00;
+    let apostasHoje = 0;
+    let resultadosDoDia = [];
+    let apostasRegistradas = [];
+    let BANCA_INICIAL = 30.00;
+    let META_MINIMA = 200.00;
+    let TETO_MAXIMO_STAKE = 3.00;
+    const LIMITE_APOSTAS_DIARIO = 10;
+    const LIMITE_RED_SEQUENCIAL = 3;
+
+    // Estado do Chat para cada esporte
+    const chatStates = {
+        futebol: { state: 'initial', jogo: '', campeonato: '', timeA: {}, timeB: {} },
+        nfl: { state: 'initial', jogo: '', campeonato: '', timeA: {}, timeB: {} },
+        nba: { state: 'initial', jogo: '', campeonato: '', timeA: {}, timeB: {} }
+    };
+
+    function getTodayDate() {
+        return new Date().toLocaleDateString('pt-BR');
+    }
+
     function salvarDados() {
-        const dados = { apostas: apostasRegistradas, config: { bancaInicial: BANCA_INICIAL, metaMinima: META_MINIMA, stakeMaxima: TETO_MAXIMO_STAKE } };
+        const dados = {
+            banca: bancaAtual,
+            apostas: apostasRegistradas,
+            apostasHojeCount: apostasHoje,
+            config: {
+                bancaInicial: BANCA_INICIAL,
+                metaMinima: META_MINIMA,
+                stakeMaxima: TETO_MAXIMO_STAKE
+            }
+        };
         localStorage.setItem('gestaoBancaData', JSON.stringify(dados));
     }
+
     function carregarDados() {
         const dadosSalvos = localStorage.getItem('gestaoBancaData');
         if (dadosSalvos) {
             const dados = JSON.parse(dadosSalvos);
+            bancaAtual = dados.banca || 0;
             apostasRegistradas = dados.apostas || [];
-            const config = dados.config || {};
-            BANCA_INICIAL = config.bancaInicial || 30.00;
-            META_MINIMA = config.metaMinima || 200.00;
-            TETO_MAXIMO_STAKE = config.stakeMaxima || 3.00;
+            apostasHoje = dados.apostasHojeCount || 0;
+            BANCA_INICIAL = dados.config.bancaInicial || 30.00;
+            META_MINIMA = dados.config.metaMinima || 200.00;
+            TETO_MAXIMO_STAKE = dados.config.stakeMaxima || 3.00;
         }
-        UIElements.configBancaInicial.value = BANCA_INICIAL.toFixed(2);
-        UIElements.configMetaMinima.value = META_MINIMA.toFixed(2);
-        UIElements.configStakeMax.value = TETO_MAXIMO_STAKE.toFixed(2);
-        recalcularBanca();
-        atualizarUI();
-    }
-    function resetarDados() {
-        if (confirm(`ATENÇÃO: Resetar todos os dados?`)) {
-            apostasRegistradas = [];
-            salvarDados();
+        configBancaInicialEl.value = BANCA_INICIAL.toFixed(2);
+        configMetaMinimaEl.value = META_MINIMA.toFixed(2);
+        configStakeMaxEl.value = TETO_MAXIMO_STAKE.toFixed(2);
+        if (apostasRegistradas.length === 0) {
+            bancaAtual = BANCA_INICIAL;
+        } else {
             recalcularBanca();
-            atualizarUI();
-            alert("Dados resetados!");
         }
     }
+
+    function resetarDados() {
+        if (confirm(`ATENÇÃO: Deseja RESETAR todos os dados? A banca voltará para R$ ${BANCA_INICIAL.toFixed(2)}.`)) {
+            bancaAtual = BANCA_INICIAL;
+            apostasRegistradas = [];
+            apostasHoje = 0;
+            resultadosDoDia = [];
+            salvarDados();
+            atualizarUI();
+            alert("Dados resetados com sucesso!");
+        }
+    }
+
     function configurarBanca() {
-        BANCA_INICIAL = parseFloat(UIElements.configBancaInicial.value) || BANCA_INICIAL;
-        META_MINIMA = parseFloat(UIElements.configMetaMinima.value) || META_MINIMA;
-        TETO_MAXIMO_STAKE = parseFloat(UIElements.configStakeMax.value) || TETO_MAXIMO_STAKE;
+        const novaBancaInicial = parseFloat(configBancaInicialEl.value);
+        const novaMetaMinima = parseFloat(configMetaMinimaEl.value);
+        const novaStakeMax = parseFloat(configStakeMaxEl.value);
+        if (isNaN(novaBancaInicial) || isNaN(novaStakeMax) || isNaN(novaMetaMinima) || novaBancaInicial <= 0) {
+            alert("Preencha as configurações com valores válidos.");
+            return;
+        }
+        BANCA_INICIAL = novaBancaInicial;
+        META_MINIMA = novaMetaMinima;
+        TETO_MAXIMO_STAKE = novaStakeMax;
+        if (apostasRegistradas.length === 0) {
+            bancaAtual = BANCA_INICIAL;
+        }
         salvarDados();
-        recalcularBanca();
         atualizarUI();
         alert("Configurações aplicadas!");
     }
-    function adicionarAposta() {
-        const stake = parseFloat(UIElements.inputStake.value);
-        const odd = parseFloat(UIElements.inputOdd.value);
-        const resultado = UIElements.inputResultado.value;
-        const acrescimo = parseFloat(UIElements.inputAcrescimo.value) || 0.00;
-        if (!stake || !odd || !resultado) return alert("Preencha Stake, Odd e Resultado.");
-        if (stake > TETO_MAXIMO_STAKE && !confirm(`Stake maior que o teto. Continuar?`)) return;
-        apostasRegistradas.push({ id: Date.now(), data: getTodayDate(), stake, odd, resultado, acrescimo });
-        salvarDados();
-        recalcularBanca();
-        atualizarUI();
-        UIElements.inputStake.value = UIElements.inputOdd.value = UIElements.inputResultado.value = '';
-        UIElements.inputAcrescimo.value = '0.00';
+
+    function openTab(tabName) {
+        document.body.className = `theme-${tabName}`;
+        UIElements.tabContents.forEach(content => content.classList.remove('active'));
+        UIElements.tabs.forEach(tab => tab.classList.remove('active'));
+        const activeContent = document.getElementById(`${tabName}-tab`);
+        const activeTab = document.querySelector(`.tab-button[onclick*="'${tabName}'"]`);
+        if (activeContent) activeContent.classList.add('active');
+        if (activeTab) activeTab.classList.add('active');
     }
-    function resolverAposta(apostaId, novoResultado) {
-        const aposta = apostasRegistradas.find(a => a.id === apostaId);
-        if (aposta) {
-            aposta.resultado = novoResultado;
-            salvarDados();
-            recalcularBanca();
-            atualizarUI();
+
+    function appendMessageToChat(chatContainer, sender, message) {
+        const msgEl = document.createElement('p');
+        msgEl.classList.add(sender === 'bot' ? 'bot-message' : 'user-message');
+        msgEl.innerHTML = message; // Use innerHTML para renderizar HTML
+        chatContainer.appendChild(msgEl);
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+    }
+
+    async function processarComando(esporte) {
+        const chatUI = UIElements.chats[esporte];
+        const chatState = chatStates[esporte];
+        const comando = chatUI.input.value.trim();
+        if (comando === '') return;
+        appendMessageToChat(chatUI.chatContainer, 'user', comando);
+        chatUI.input.value = '';
+
+        if (chatState.state === 'initial' && comando.toLowerCase().includes('quero apostar')) {
+            appendMessageToChat(chatUI.chatContainer, 'bot', "Excelente! Qual jogo (Time A vs Time B) você quer analisar?");
+            chatState.state = 'waiting_game';
+            return;
         }
-    }
-    function recalcularBanca() {
-        let tempBanca = BANCA_INICIAL;
-        resultadosDoDia = [];
-        const hoje = getTodayDate();
-        apostasRegistradas.forEach(aposta => {
-            if (aposta.resultado !== 'pending') {
-                const ganhoPerda = (aposta.resultado === 'win') ? aposta.stake * (aposta.odd - 1) + aposta.acrescimo : -aposta.stake;
-                tempBanca += ganhoPerda;
-                if (aposta.data === hoje) resultadosDoDia.push(aposta.resultado);
+        if (chatState.state === 'waiting_game') {
+            const times = comando.split(' vs ');
+            if (times.length !== 2) {
+                appendMessageToChat(chatUI.chatContainer, 'bot', "Formato inválido. Use 'Time A vs Time B'.");
+                return;
             }
-        });
-        bancaAtual = tempBanca;
-        apostasHoje = apostasRegistradas.filter(a => a.data === hoje).length;
+            chatState.timeA.nome = times[0].trim();
+            chatState.timeB.nome = times[1].trim();
+            appendMessageToChat(chatUI.chatContainer, 'bot', `Entendido. E qual o campeonato?`);
+            chatState.state = 'waiting_league';
+            return;
+        }
+        if (chatState.state === 'waiting_league') {
+            chatState.campeonato = comando;
+            appendMessageToChat(chatUI.chatContainer, 'bot', `Ok, buscando análise para <strong>${chatState.timeA.nome} vs ${chatState.timeB.nome}</strong> no campeonato <strong>${chatState.campeonato}</strong>...`);
+            chatState.state = 'analyzing';
+            
+            try {
+                const url = `${window.location.origin}/analisar`;
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        esporte: esporte,
+                        time_casa: chatState.timeA.nome,
+                        time_fora: chatState.timeB.nome,
+                        campeonato: chatState.campeonato
+                    })
+                });
+                const data = await response.json();
+                if (data.erro) {
+                    appendMessageToChat(chatUI.chatContainer, 'bot', `⚠️ Erro: ${data.erro}`);
+                } else {
+                    const { melhor_aposta, outras_opcoes } = data;
+                    let analiseHTML = `<strong>🎯 Melhor Entrada:</strong>  
+
+                        <strong>Mercado:</strong> ${melhor_aposta.mercado}  
+
+                        <strong>Entrada:</strong> ${melhor_aposta.entrada}  
+
+                        <strong>Confiança:</strong> ${melhor_aposta.confianca}  
+
+                        <i>${melhor_aposta.justificativa}</i>  
+  
+`;
+                    
+                    if (outras_opcoes && outras_opcoes.length > 0) {
+                        analiseHTML += `<strong>🔎 Outras Opções de Valor:</strong>  
+`;
+                        outras_opcoes.forEach(op => {
+                            analiseHTML += `• <strong>${op.mercado}:</strong> ${op.entrada} (${op.confianca})  
+`;
+                        });
+                    }
+                    appendMessageToChat(chatUI.chatContainer, 'bot', analiseHTML);
+                }
+            } catch (error) {
+                console.error("Erro na API:", error);
+                appendMessageToChat(chatUI.chatContainer, 'bot', "Desculpe, não consegui conectar ao servidor de análise.");
+            }
+            
+            appendMessageToChat(chatUI.chatContainer, 'bot', `Análise concluída. Digite "Quero Apostar" para um novo jogo.`);
+            chatState.state = 'initial';
+            return;
+        }
+        appendMessageToChat(chatUI.chatContainer, 'bot', 'Comando não reconhecido. Digite "Quero Apostar" para iniciar.');
     }
+
     function atualizarUI() {
-        UIElements.bancaAtual.textContent = `R$ ${bancaAtual.toFixed(2)}`;
-        UIElements.stakeMax.textContent = `R$ ${TETO_MAXIMO_STAKE.toFixed(2)}`;
-        UIElements.apostasHoje.textContent = `${apostasHoje}/${LIMITE_APOSTAS_DIARIO}`;
-        UIElements.dataHoje.textContent = getTodayDate();
+        bancaAtualEl.textContent = `R$ ${bancaAtual.toFixed(2)}`;
+        stakeMaxEl.textContent = `R$ ${TETO_MAXIMO_STAKE.toFixed(2)}`;
+        apostasHojeEl.textContent = `${apostasHoje}/${LIMITE_APOSTAS_DIARIO}`;
+        dataHojeEl.textContent = getTodayDate();
         renderizarTabela();
         verificarAlertas();
     }
 
+    function verificarAlertas() {
+        alertaRiscoEl.className = 'alerta';
+        alertaRiscoEl.textContent = '';
+        if (apostasHoje >= LIMITE_APOSTAS_DIARIO) {
+            alertaRiscoEl.classList.add('ativo', 'alerta-limite');
+            alertaRiscoEl.textContent = '⚠️ LIMITE DIÁRIO ATINGIDO!';
+        }
+        let redSeguidos = 0;
+        for (let i = resultadosDoDia.length - 1; i >= 0; i--) {
+            if (resultadosDoDia[i] === 'red') redSeguidos++;
+            else if (resultadosDoDia[i] === 'win') break;
+        }
+        if (redSeguidos >= LIMITE_RED_SEQUENCIAL) {
+            alertaRiscoEl.classList.add('ativo', 'alerta-stop');
+            alertaRiscoEl.textContent = `🚨 STOP LOSS! ${redSeguidos} REDs seguidos.`;
+        }
+        if (bancaAtual >= META_MINIMA) {
+            alertaRiscoEl.classList.add('ativo', 'alerta-limite');
+            alertaRiscoEl.textContent = `🏆 PARABÉNS! META ATINGIDA!`;
+        }
+    }
+
+    function adicionarAposta() {
+        const stake = parseFloat(document.getElementById('input-stake').value);
+        const odd = parseFloat(document.getElementById('input-odd').value);
+        const resultado = document.getElementById('input-resultado').value;
+        const acrescimo = parseFloat(document.getElementById('input-acrescimo').value) || 0.00;
+        if (!stake || !odd || !resultado) {
+            alert("Preencha Stake, Odd e Resultado.");
+            return;
+        }
+        if (stake > TETO_MAXIMO_STAKE) {
+            alert(`A Stake Máxima permitida é de R$ ${TETO_MAXIMO_STAKE.toFixed(2)}.`);
+            return;
+        }
+        if (stake <= 0) {
+            alert("A Stake deve ser um valor positivo.");
+            return;
+        }
+        let ganhoPerdaCalculado;
+        if (resultado === 'win') ganhoPerdaCalculado = stake * (odd - 1) + acrescimo;
+        else if (resultado === 'red') ganhoPerdaCalculado = -stake;
+        else ganhoPerdaCalculado = 0;
+        const novaAposta = {
+            id: Date.now(),
+            data: getTodayDate(),
+            stake: stake,
+            odd: odd,
+            resultado: resultado,
+            acrescimo: acrescimo,
+            ganhoPerda: ganhoPerdaCalculado,
+            bancaPreAposta: bancaAtual
+        };
+        apostasRegistradas.push(novaAposta);
+        apostasHoje++;
+        if (novaAposta.resultado !== 'pending') {
+            bancaAtual += novaAposta.ganhoPerda;
+            resultadosDoDia.push(novaAposta.resultado);
+        }
+        salvarDados();
+        atualizarUI();
+        document.getElementById('input-stake').value = '';
+        document.getElementById('input-odd').value = '';
+        document.getElementById('input-resultado').value = '';
+        document.getElementById('input-acrescimo').value = '0.00';
+    }
+
     function renderizarTabela() {
-        UIElements.tabelaBody.innerHTML = '';
-        let bancaFlutuante = BANCA_INICIAL;
-
+        tabelaBody.innerHTML = '';
+        let bancaExibicao = BANCA_INICIAL;
         apostasRegistradas.forEach((aposta, index) => {
-            const newRow = UIElements.tabelaBody.insertRow();
-            
-            let ganhoPerda = 0;
-            let ganhoPerdaDisplay = '---';
-            let bancaFinalDisplay = 'PENDENTE';
-
+            const newRow = tabelaBody.insertRow();
+            let ganhoPerdaDisplay = aposta.ganhoPerda.toFixed(2);
+            let bancaFinalDisplay;
             if (aposta.resultado !== 'pending') {
-                ganhoPerda = (aposta.resultado === 'win') 
-                    ? aposta.stake * (aposta.odd - 1) + aposta.acrescimo 
-                    : -aposta.stake;
-                
-                bancaFlutuante += ganhoPerda;
-                ganhoPerdaDisplay = ganhoPerda.toFixed(2);
-                bancaFinalDisplay = bancaFlutuante.toFixed(2);
+                bancaExibicao += aposta.ganhoPerda;
+                bancaFinalDisplay = bancaExibicao.toFixed(2);
+            } else {
+                bancaFinalDisplay = 'PENDENTE';
             }
-
-            const values = [ aposta.data, index + 1, aposta.stake.toFixed(2), aposta.odd.toFixed(2), aposta.resultado.toUpperCase(), ganhoPerdaDisplay, aposta.acrescimo.toFixed(2), bancaFinalDisplay ];
-            const labels = ["Data", "# do Dia", "Stake (R$)", "Odd", "Resultado", "Ganho/Perda", "Acréscimo", "Banca Final"];
-
+            const labels = ["Data", "#", "Stake (R$)", "Odd", "Resultado", "Ganho/Perda", "Acréscimo", "Banca Final", "Ação"];
+            const values = [aposta.data, index + 1, aposta.stake.toFixed(2), aposta.odd.toFixed(2), aposta.resultado.toUpperCase(), (aposta.resultado === 'pending' ? '---' : ganhoPerdaDisplay), aposta.acrescimo.toFixed(2), bancaFinalDisplay, ''];
             values.forEach((value, i) => {
                 let cell = newRow.insertCell(i);
                 cell.setAttribute('data-label', labels[i]);
                 cell.textContent = value;
             });
-            
-            newRow.cells[4].classList.add(aposta.resultado);
-
-            const actionCell = newRow.insertCell(8);
-            actionCell.setAttribute('data-label', 'Ação');
-
+            newRow.querySelector('td:nth-child(5)').classList.add(aposta.resultado);
             if (aposta.resultado === 'pending') {
+                const actionCell = newRow.cells[8];
+                actionCell.setAttribute('data-label', 'Ação');
                 const btnWin = document.createElement('button');
                 btnWin.textContent = 'WIN';
                 btnWin.className = 'btn-fechar';
                 btnWin.onclick = () => resolverAposta(aposta.id, 'win');
-                
                 const btnRed = document.createElement('button');
                 btnRed.textContent = 'RED';
                 btnRed.className = 'btn-fechar';
                 btnRed.onclick = () => resolverAposta(aposta.id, 'red');
-
                 actionCell.appendChild(btnWin);
                 actionCell.appendChild(btnRed);
             }
         });
     }
 
-    function verificarAlertas() {
-        UIElements.alertaRisco.className = 'alerta';
-        UIElements.alertaRisco.textContent = '';
-        if (apostasHoje >= LIMITE_APOSTAS_DIARIO) {
-            UIElements.alertaRisco.className = 'alerta ativo alerta-limite';
-            UIElements.alertaRisco.textContent = '⚠️ LIMITE DIÁRIO ATINGIDO!';
-        } else if (resultadosDoDia.slice(-LIMITE_RED_SEQUENCIAL).every(r => r === 'red') && resultadosDoDia.length >= LIMITE_RED_SEQUENCIAL) {
-            UIElements.alertaRisco.className = 'alerta ativo alerta-stop';
-            UIElements.alertaRisco.textContent = `🚨 STOP LOSS! ${LIMITE_RED_SEQUENCIAL} REDs seguidos.`;
-        } else if (bancaAtual >= META_MINIMA) {
-            UIElements.alertaRisco.className = 'alerta ativo alerta-limite';
-            UIElements.alertaRisco.textContent = `🏆 PARABÉNS! META ATINGIDA!`;
-        }
-    }
-    
-    function openTab(tabId) {
-        esporteAtivo = tabId;
-        
-        document.body.classList.remove('theme-futebol', 'theme-nfl', 'theme-nba', 'theme-gestao');
-        document.body.classList.add(`theme-${tabId}`);
-        
-        const todasAbas = [UIElements.futebolTab, UIElements.nflTab, UIElements.nbaTab, UIElements.gestaoTab];
-        const todosBotoes = [UIElements.btnFutebolTab, UIElements.btnNflTab, UIElements.btnNbaTab, UIElements.btnGestaoTab];
-        
-        todasAbas.forEach(tab => tab.style.display = 'none');
-        todosBotoes.forEach(btn => btn.classList.remove('active'));
-
-        if (tabId === 'futebol') {
-            UIElements.futebolTab.style.display = 'block';
-            UIElements.btnFutebolTab.classList.add('active');
-        } else if (tabId === 'nfl') {
-            UIElements.nflTab.style.display = 'block';
-            UIElements.btnNflTab.classList.add('active');
-        } else if (tabId === 'nba') {
-            UIElements.nbaTab.style.display = 'block';
-            UIElements.btnNbaTab.classList.add('active');
-        } else if (tabId === 'gestao') {
-            UIElements.gestaoTab.style.display = 'block';
-            UIElements.btnGestaoTab.classList.add('active');
-        }
+    function resolverAposta(apostaId, novoResultado) {
+        const apostaIndex = apostasRegistradas.findIndex(a => a.id === apostaId);
+        if (apostaIndex === -1) return;
+        const aposta = apostasRegistradas[apostaIndex];
+        if (aposta.resultado !== 'pending') return;
+        let ganho = 0;
+        if (novoResultado === 'win') ganho = aposta.stake * (aposta.odd - 1) + aposta.acrescimo;
+        else ganho = -aposta.stake;
+        aposta.resultado = novoResultado;
+        aposta.ganhoPerda = ganho;
+        recalcularBanca();
+        salvarDados();
+        atualizarUI();
     }
 
-    // =========================================================
-    // INICIALIZAÇÃO E EVENTOS
-    // =========================================================
+    function recalcularBanca() {
+        let tempBanca = BANCA_INICIAL;
+        resultadosDoDia.length = 0;
+        apostasRegistradas.forEach(aposta => {
+            if (aposta.resultado !== 'pending') {
+                tempBanca += aposta.ganhoPerda;
+                resultadosDoDia.push(aposta.resultado);
+            }
+        });
+        bancaAtual = tempBanca;
+    }
+
+    async function carregarCampeonatosDisponiveis() {
+        try {
+            const url = `${window.location.origin}/campeonatos`;
+            const response = await fetch(url);
+            if (!response.ok) throw new Error('Resposta do servidor não foi OK');
+            const campeonatos = await response.json();
+            const listaFormatada = campeonatos.map(c => `• ${c.charAt(0).toUpperCase() + c.slice(1)}`).join('  ')};
+            const mensagem = `Para análise com dados reais, use um dos seguintes campeonatos:  
+  
+         ${listaFormatada}`;
+            const chatFutebol = UIElements.chats.futebol.chatContainer;
+            const msgEl = document.createElement('p');
+            msgEl.classList.add('bot-message', 'info-message');
+            msgEl.innerHTML = mensagem;
+            chatFutebol.appendChild(msgEl);
+            chatFutebol.scrollTop = chatFutebol.scrollHeight;
+        } catch (error) {
+            console.error("Erro ao carregar campeonatos:", error);
+            appendMessageToChat(UIElements.chats.futebol.chatContainer, 'bot', 'Não foi possível carregar a lista de campeonatos disponíveis.');
+        }
+    }
+
     function init() {
-        UIElements.btnFutebolTab.addEventListener('click', () => openTab('futebol'));
-        UIElements.btnNflTab.addEventListener('click', () => openTab('nfl'));
-        UIElements.btnNbaTab.addEventListener('click', () => openTab('nba'));
-        UIElements.btnGestaoTab.addEventListener('click', () => openTab('gestao'));
-
+        carregarDados();
+        atualizarUI();
+        openTab('futebol');
+        UIElements.tabs.forEach(tab => {
+            const tabName = tab.getAttribute('onclick').match(/'([^']+)'/)[1];
+            tab.addEventListener('click', () => openTab(tabName));
+        });
         Object.keys(UIElements.chats).forEach(esporte => {
             const chatUI = UIElements.chats[esporte];
-            chatUI.btn.addEventListener('click', () => processarComando(esporte));
-            chatUI.input.addEventListener('keyup', (e) => {
-                if (e.key === 'Enter') processarComando(esporte);
+            chatUI.sendButton.addEventListener('click', () => processarComando(esporte));
+            chatUI.input.addEventListener('keyup', (event) => {
+                if (event.key === 'Enter') processarComando(esporte);
             });
         });
-
-        UIElements.btnConfigurarBanca.addEventListener('click', configurarBanca);
-        UIElements.btnRegistrarAposta.addEventListener('click', adicionarAposta);
+        UIElements.btnConfig.addEventListener('click', configurarBanca);
+        UIElements.btnAddAposta.addEventListener('click', adicionarAposta);
         UIElements.btnReset.addEventListener('click', resetarDados);
-
-        carregarDados();
-        openTab('futebol');
+        carregarCampeonatosDisponiveis();
     }
 
     init();
