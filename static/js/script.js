@@ -210,41 +210,59 @@ document.addEventListener('DOMContentLoaded', function() {
         renderizarTabela();
         verificarAlertas();
     }
+
     function renderizarTabela() {
         UIElements.tabelaBody.innerHTML = '';
         let bancaFlutuante = BANCA_INICIAL;
+
         apostasRegistradas.forEach((aposta, index) => {
             const newRow = UIElements.tabelaBody.insertRow();
-            let ganhoPerdaDisplay = '---', bancaFinalDisplay = 'PENDENTE';
+            
+            let ganhoPerda = 0;
+            let ganhoPerdaDisplay = '---';
+            let bancaFinalDisplay = 'PENDENTE';
+
             if (aposta.resultado !== 'pending') {
-                const ganhoPerda = (aposta.resultado === 'win') ? aposta.stake * (aposta.odd - 1) + aposta.acrescimo : -aposta.stake;
+                ganhoPerda = (aposta.resultado === 'win') 
+                    ? aposta.stake * (aposta.odd - 1) + aposta.acrescimo 
+                    : -aposta.stake;
+                
                 bancaFlutuante += ganhoPerda;
                 ganhoPerdaDisplay = ganhoPerda.toFixed(2);
                 bancaFinalDisplay = bancaFlutuante.toFixed(2);
             }
-            const values = [aposta.data, index + 1, aposta.stake.toFixed(2), aposta.odd.toFixed(2), aposta.resultado.toUpperCase(), ganhoPerdaDisplay, aposta.acrescimo.toFixed(2), bancaFinalDisplay, ''];
-            const labels = ["Data", "# do Dia", "Stake (R$)", "Odd", "Resultado", "Ganho/Perda", "Acréscimo", "Banca Final", "Ação"];
+
+            const values = [ aposta.data, index + 1, aposta.stake.toFixed(2), aposta.odd.toFixed(2), aposta.resultado.toUpperCase(), ganhoPerdaDisplay, aposta.acrescimo.toFixed(2), bancaFinalDisplay ];
+            const labels = ["Data", "# do Dia", "Stake (R$)", "Odd", "Resultado", "Ganho/Perda", "Acréscimo", "Banca Final"];
+
             values.forEach((value, i) => {
                 let cell = newRow.insertCell(i);
                 cell.setAttribute('data-label', labels[i]);
                 cell.textContent = value;
             });
+            
             newRow.cells[4].classList.add(aposta.resultado);
-            if (apota.resultado === 'pending') {
-                const actionCell = newRow.cells[8];
+
+            const actionCell = newRow.insertCell(8);
+            actionCell.setAttribute('data-label', 'Ação');
+
+            if (aposta.resultado === 'pending') {
                 const btnWin = document.createElement('button');
                 btnWin.textContent = 'WIN';
                 btnWin.className = 'btn-fechar';
                 btnWin.onclick = () => resolverAposta(aposta.id, 'win');
+                
                 const btnRed = document.createElement('button');
                 btnRed.textContent = 'RED';
                 btnRed.className = 'btn-fechar';
                 btnRed.onclick = () => resolverAposta(aposta.id, 'red');
+
                 actionCell.appendChild(btnWin);
                 actionCell.appendChild(btnRed);
             }
         });
     }
+
     function verificarAlertas() {
         UIElements.alertaRisco.className = 'alerta';
         UIElements.alertaRisco.textContent = '';
@@ -291,13 +309,11 @@ document.addEventListener('DOMContentLoaded', function() {
     // INICIALIZAÇÃO E EVENTOS
     // =========================================================
     function init() {
-        // Navegação por Abas - CORRIGIDO
         UIElements.btnFutebolTab.addEventListener('click', () => openTab('futebol'));
         UIElements.btnNflTab.addEventListener('click', () => openTab('nfl'));
         UIElements.btnNbaTab.addEventListener('click', () => openTab('nba'));
         UIElements.btnGestaoTab.addEventListener('click', () => openTab('gestao'));
 
-        // Eventos de Chat para cada esporte
         Object.keys(UIElements.chats).forEach(esporte => {
             const chatUI = UIElements.chats[esporte];
             chatUI.btn.addEventListener('click', () => processarComando(esporte));
@@ -306,12 +322,10 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
 
-        // Eventos da Gestão de Banca
         UIElements.btnConfigurarBanca.addEventListener('click', configurarBanca);
         UIElements.btnRegistrarAposta.addEventListener('click', adicionarAposta);
         UIElements.btnReset.addEventListener('click', resetarDados);
 
-        // Carregar dados e definir estado inicial
         carregarDados();
         openTab('futebol');
     }
