@@ -1,5 +1,5 @@
 # =================================================================
-# ARQUIVO app.py - NOME CORRIGIDO PARA COMPATIBILIDADE
+# ARQUIVO app.py - VERSÃO OTIMIZADA PARA EVITAR TIMEOUT
 # =================================================================
 import os
 import requests
@@ -8,7 +8,7 @@ from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
 from datetime import datetime
 
-# --- APLICAÇÃO FLASK E CONFIGURAÇÕES (ESCOPO GLOBAL) ---
+# --- APLICAÇÃO FLASK E CONFIGURAÇÕES ---
 app = Flask(__name__, static_folder='static', template_folder='templates')
 CORS(app)
 
@@ -45,7 +45,6 @@ def processar_dados_reais(stats_casa, stats_fora, nome_casa, nome_fora):
     except (TypeError, ValueError) as e:
         print(f"Aviso: Falha ao processar dados de Gols/Handicap. {e}")
 
-    # Simulação para Escanteios e Cartões (API gratuita não fornece)
     tips.append({"mercado": "Escanteios", "entrada": "Mais de 9.5", "justificativa": "Análise simulada.", "confianca": f"{random.randint(65, 85)}%"})
     tips.append({"mercado": "Cartões", "entrada": "Mais de 4.5", "justificativa": "Análise simulada.", "confianca": f"{random.randint(65, 85)}%"})
 
@@ -76,43 +75,42 @@ def analisar_jogo_api():
     try:
         headers = {'x-rapidapi-host': API_HOST, 'x-rapidapi-key': API_KEY}
         
+        # OTIMIZAÇÃO: Buscar a liga primeiro para obter o ID
         ligas_response = requests.get(f"https://{API_HOST}/leagues", headers=headers, params={"search": campeonato_nome}, timeout=10 )
         ligas_response.raise_for_status()
         ligas = ligas_response.json().get('response', [])
         if not ligas: return jsonify({"erro": f"Campeonato '{campeonato_nome}' não encontrado."})
         id_liga = ligas[0]['league']['id']
         
-        time_casa_response = requests.get(f"https://{API_HOST}/teams", headers=headers, params={"league": id_liga, "search": time_casa_nome}, timeout=10 )
-        time_casa_response.raise_for_status()
-        time_casa = time_casa_response.json().get('response', [])
-        
-        time_fora_response = requests.get(f"https://{API_HOST}/teams", headers=headers, params={"league": id_liga, "search": time_fora_nome}, timeout=10 )
-        time_fora_response.raise_for_status()
-        time_fora = time_fora_response.json().get('response', [])
-        
-        if not time_casa: return jsonify({"erro": f"Time '{time_casa_nome}' não encontrado."})
-        if not time_fora: return jsonify({"erro": f"Time '{time_fora_nome}' não encontrado."})
-        
+        # OTIMIZAÇÃO: Buscar estatísticas usando o NOME do time e o ID da liga
         ano_atual = datetime.now().year
-        params_stats = {"league": id_liga, "season": ano_atual, "team": time_casa[0]['team']['id']}
-        stats_casa_response = requests.get(f"https://{API_HOST}/teams/statistics", headers=headers, params=params_stats, timeout=10 )
+        
+        # Chamada para o time da casa
+        params_casa = {"league": id_liga, "season": ano_atual, "team_name": time_casa_nome}
+        stats_casa_response = requests.get(f"https://{API_HOST}/teams/statistics", headers=headers, params=params_casa, timeout=15 )
         stats_casa_response.raise_for_status()
         stats_casa = stats_casa_response.json().get('response', {})
         
-        params_stats["team"] = time_fora[0]['team']['id']
-        stats_fora_response = requests.get(f"https://{API_HOST}/teams/statistics", headers=headers, params=params_stats, timeout=10 )
+        # Chamada para o time de fora
+        params_fora = {"league": id_liga, "season": ano_atual, "team_name": time_fora_nome}
+        stats_fora_response = requests.get(f"https://{API_HOST}/teams/statistics", headers=headers, params=params_fora, timeout=15 )
         stats_fora_response.raise_for_status()
         stats_fora = stats_fora_response.json().get('response', {})
 
         if not stats_casa or not stats_fora:
             return jsonify({"erro": "Não há estatísticas para estes times nesta temporada."})
 
-        resultado_analise = processar_dados_reais(stats_casa, stats_fora, time_casa[0]['team']['name'], time_fora[0]['team']['name'])
+        # A API retorna o nome oficial, vamos usá-lo
+        nome_oficial_casa = stats_casa.get('team', {}).get('name', time_casa_nome)
+        nome_oficial_fora = stats_fora.get('team', {}).get('name', time_fora_nome)
+
+        resultado_analise = processar_dados_reais(stats_casa, stats_fora, nome_oficial_casa, nome_oficial_fora)
         return jsonify(resultado_analise)
 
     except requests.exceptions.Timeout:
-        return jsonify({"erro": "O servidor de dados demorou para responder."}), 504
+        return jsonify({"erro": "O servidor de dados demorou para responder (Timeout)."}), 504
     except requests.exceptions.RequestException as e:
         return jsonify({"erro": f"Falha ao conectar com a API: {e}"}), 500
     except Exception as e:
         return jsonify({"erro": f"Erro interno no servidor: {e}"}), 500
+
