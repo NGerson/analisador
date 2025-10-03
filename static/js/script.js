@@ -1,5 +1,5 @@
 // =================================================================
-// ARQUIVO script.js - VERSÃO FINAL, CORRIGIDA E VALIDADA
+// ARQUIVO script.js - VERSÃO FINAL COM INDENTAÇÃO CORRIGIDA
 // =================================================================
 document.addEventListener('DOMContentLoaded', function() {
 
@@ -369,6 +369,18 @@ ${listaFormatada}`;
         salvarDados();
         atualizarUI();
         alert("Configurações aplicadas!");
+    }
+
+    function resetarDados() {
+        if (confirm(`ATENÇÃO: Deseja RESETAR todos os dados? A banca voltará para R$ ${BANCA_INICIAL.toFixed(2)}.`)) {
+            bancaAtual = BANCA_INICIAL;
+            apostasRegistradas = [];
+            apostasHoje = 0;
+            resultadosDoDia = [];
+            salvarDados();
+            atualizarUI();
+            alert("Dados resetados com sucesso!");
+        }
     }
 
     // 4. INICIALIZAÇÃO DA APLICAÇÃO

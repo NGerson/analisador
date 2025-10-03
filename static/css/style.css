@@ -1,35 +1,90 @@
 /* ========================================================= */
-/* BASE E CONFIGURAÇÕES GERAIS */
+/* BASE E TEMAS */
 /* ========================================================= */
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    color: #e0e0e0;
     margin: 0;
     padding: 0;
     line-height: 1.6;
+    transition: background-image 0.5s ease-in-out;
     background-size: cover;
     background-position: center center;
     background-attachment: fixed;
-    transition: background-color 0.5s ease;
 }
 
+/* Tema Padrão (Futebol) */
+body.theme-futebol {
+    background-color: #121212;
+    color: #e0e0e0;
+    background-image: linear-gradient(rgba(18, 18, 18, 0.85), rgba(18, 18, 18, 0.95)), url('https://images.unsplash.com/photo-1553779429-045a3e483424?q=80&w=2070&auto=format&fit=crop' );
+}
+body.theme-futebol h1, body.theme-futebol .tab-button.active { color: #00aaff; }
+body.theme-futebol .tab-button.active { border-bottom-color: #00aaff; background-color: #00aaff; color: #121212; }
+body.theme-futebol .chat-input-area button, body.theme-futebol .input-form button { background-color: #00aaff; }
+
+/* Tema NFL */
+body.theme-nfl {
+    background-color: #0d1c12;
+    color: #e0e0e0;
+    background-image: linear-gradient(rgba(13, 28, 18, 0.85), rgba(13, 28, 18, 0.95)), url('https://images.unsplash.com/photo-1542689423-92656f6a1a89?q=80&w=2070&auto=format&fit=crop' );
+}
+body.theme-nfl h1, body.theme-nfl .tab-button.active { color: #d4a04c; }
+body.theme-nfl .tab-button.active { border-bottom-color: #d4a04c; background-color: #d4a04c; color: #0d1c12; }
+body.theme-nfl .chat-input-area button, body.theme-nfl .input-form button { background-color: #d4a04c; }
+
+/* Tema NBA */
+body.theme-nba {
+    background-color: #1a100a;
+    color: #e0e0e0;
+    background-image: linear-gradient(rgba(26, 16, 10, 0.85), rgba(26, 16, 10, 0.95)), url('https://images.unsplash.com/photo-1577412645753-9515739539f1?q=80&w=1932&auto=format&fit=crop' );
+}
+body.theme-nba h1, body.theme-nba .tab-button.active { color: #f26f21; }
+body.theme-nba .tab-button.active { border-bottom-color: #f26f21; background-color: #f26f21; color: #1a100a; }
+body.theme-nba .chat-input-area button, body.theme-nba .input-form button { background-color: #f26f21; }
+
+/* Tema Gestão */
+body.theme-gestao {
+    background-color: #1f1f1f;
+    color: #e0e0e0;
+    background-image: linear-gradient(rgba(31, 31, 31, 0.85), rgba(31, 31, 31, 0.95)), url('https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?q=80&w=2070&auto=format&fit=crop' );
+}
+body.theme-gestao h1, body.theme-gestao .tab-button.active { color: #4CAF50; }
+body.theme-gestao .tab-button.active { border-bottom-color: #4CAF50; background-color: #4CAF50; color: #1f1f1f; }
+body.theme-gestao .input-form button { background-color: #4CAF50; }
+
+/* ========================================================= */
+/* ESTRUTURA GERAL */
+/* ========================================================= */
 .container {
     max-width: 950px;
     margin: 25px auto;
-    padding: 25px;
-    border-radius: 15px;
-    backdrop-filter: blur(3px);
-    background-color: rgba(0, 0, 0, 0.2);
+    padding: 20px;
+    background-color: rgba(44, 44, 44, 0.85);
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 h1 {
     text-align: center;
-    margin-bottom: 20px;
-    font-size: 1.8em;
+    margin-bottom: 25px;
+    font-size: 1.9em;
+    font-weight: 700;
+    transition: color 0.3s;
+}
+
+h2 {
+    color: #e0e0e0;
+    margin-top: 0;
+    margin-bottom: 15px;
+    font-size: 1.5em;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding-bottom: 10px;
 }
 
 /* ========================================================= */
-/* ESTILIZAÇÃO DE ABAS */
+/* ABAS DE NAVEGAÇÃO */
 /* ========================================================= */
 .tabs {
     display: flex;
@@ -37,49 +92,119 @@ h1 {
     margin-bottom: 20px;
     border-bottom: 2px solid #333;
 }
+
 .tab-button {
     background-color: transparent;
+    color: #aaa;
     border: none;
     padding: 12px 24px;
     cursor: pointer;
     font-size: 1.1em;
-    font-weight: bold;
-    border-radius: 8px 8px 0 0;
-    margin-right: 5px;
-    transition: color 0.5s ease, background-color 0.3s ease;
+    font-weight: 600;
+    transition: all 0.3s;
+    border-bottom: 3px solid transparent;
+    margin: 0 5px;
 }
+
 .tab-button:hover {
-    filter: brightness(1.2);
+    color: #fff;
 }
+
+.tab-button.active {
+    font-weight: 700;
+}
+
 .tab-content {
     display: none;
     padding: 20px 0;
     animation: fadeIn 0.5s;
 }
+
 .tab-content.active {
     display: block;
 }
-@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-/* CHAT DE TIPS */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* ========================================================= */
+/* CHAT DE ANÁLISE */
+/* ========================================================= */
 .chat-container {
-    height: 250px;
+    height: 300px;
+    background-color: rgba(20, 20, 20, 0.7);
     border: 1px solid #444;
     border-radius: 8px;
-    padding: 10px;
+    padding: 15px;
     overflow-y: auto;
-    margin-bottom: 10px;
+    margin-bottom: 15px;
     display: flex;
     flex-direction: column;
+    gap: 10px;
 }
-.bot-message { font-style: italic; margin-bottom: 8px; align-self: flex-start; max-width: 80%; }
-.user-message { text-align: right; margin-bottom: 8px; align-self: flex-end; max-width: 80%; }
-.chat-input-area { display: flex; gap: 10px; }
+
+.bot-message, .user-message {
+    padding: 10px 15px;
+    border-radius: 12px;
+    max-width: 80%;
+    line-height: 1.5;
+}
+
+.bot-message {
+    background-color: #3a3a3a;
+    color: #e0e0e0;
+    align-self: flex-start;
+}
+
+.bot-message.info-message {
+    background-color: rgba(0, 170, 255, 0.1);
+    border: 1px solid rgba(0, 170, 255, 0.3);
+    max-width: 100%;
+}
+
+.user-message {
+    background-color: #005a8c;
+    color: #fff;
+    align-self: flex-end;
+}
+
+.chat-input-area {
+    display: flex;
+    gap: 10px;
+}
+
+.chat-input-area input {
+    flex-grow: 1;
+    padding: 12px;
+    border-radius: 6px;
+    border: 1px solid #444;
+    background-color: #383838;
+    color: #e0e0e0;
+    font-size: 1em;
+}
+
+.chat-input-area button {
+    padding: 12px 20px;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.3s;
+    font-size: 1em;
+}
+
+.chat-input-area button:hover {
+    filter: brightness(1.2);
+}
 
 /* ========================================================= */
-/* FORMULÁRIO GERAL */
+/* FORMULÁRIOS E PAINEL DE GESTÃO */
 /* ========================================================= */
 .input-form {
+    background-color: rgba(20, 20, 20, 0.5);
     padding: 20px;
     border-radius: 10px;
     margin-bottom: 30px;
@@ -87,16 +212,17 @@ h1 {
     flex-wrap: wrap;
     gap: 12px;
     align-items: center;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.1);
 }
-.input-form h2, .input-form h3 {
+
+.input-form h3 {
     width: 100%;
-    color: #e0e0e0;
     margin-top: 0;
-    margin-bottom: 15px;
-    font-size: 1.4em;
+    margin-bottom: 10px;
 }
-.input-form input, .input-form select, #chat-input-futebol, #chat-input-nfl, #chat-input-nba {
+
+.input-form input, 
+.input-form select {
     padding: 12px;
     border-radius: 6px;
     border: 1px solid #444;
@@ -105,79 +231,171 @@ h1 {
     flex: 1 1 180px; 
     font-size: 1em;
 }
-.input-form button, #chat-input-area button {
+
+.input-form button {
     padding: 12px 20px;
     color: white;
     border: none;
     border-radius: 6px;
     cursor: pointer;
     font-weight: bold;
-    flex: 0 1 auto;
+    transition: all 0.3s;
+    flex: 1 1 auto;
     font-size: 1em;
-    transition: filter 0.2s ease;
 }
-.input-form button:hover, #chat-input-area button:hover { filter: brightness(1.2); }
-#reset-button { background-color: #ff3333; color: white; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer; font-weight: bold; margin-top: 20px; }
 
-/* ========================================================= */
-/* PAINEL DE STATUS E ALERTAS */
-/* ========================================================= */
+.input-form button:hover {
+    filter: brightness(1.2);
+}
+
+#reset-button {
+    display: block;
+    margin: 20px auto 0 auto;
+    background-color: #ff3333;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
 .status-panel {
+    background-color: rgba(20, 20, 20, 0.5);
     padding: 15px;
     border-radius: 10px;
     margin-bottom: 25px;
     display: flex;
     justify-content: space-around;
     flex-wrap: wrap; 
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.1);
 }
-.status-panel p { margin: 8px 10px; font-size: 1.1em; font-weight: 500; }
-.alerta { padding: 12px; margin-top: 15px; font-weight: bold; text-align: center; border-radius: 6px; width: 100%; display: none; animation: fadeIn 0.5s; }
-.alerta.ativo { display: block; }
+
+.status-panel p {
+    margin: 8px 10px;
+    font-size: 1.1em;
+    font-weight: 500;
+}
+
+.status-panel span {
+    font-weight: bold;
+    color: #fff;
+}
+
+.alerta {
+    padding: 12px;
+    margin-top: 15px;
+    font-weight: bold;
+    text-align: center;
+    border-radius: 6px;
+    width: 100%;
+    display: none; 
+    animation: fadeIn 0.5s;
+}
+
+.alerta.ativo {
+    display: block;
+}
+
 .alerta-stop { background-color: #ff3333; color: white; } 
 .alerta-limite { background-color: #ffcc00; color: #121212; } 
 
 /* ========================================================= */
 /* TABELA DE APOSTAS */
 /* ========================================================= */
-#tabela-apostas { width: 100%; border-collapse: collapse; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4); }
-#tabela-apostas th, #tabela-apostas td { padding: 12px; text-align: center; border-bottom: 1px solid #333; }
-#tabela-apostas thead th { font-weight: bold; text-transform: uppercase; font-size: 0.9em; }
+#tabela-apostas {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: rgba(20, 20, 20, 0.5);
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+#tabela-apostas th, 
+#tabela-apostas td {
+    padding: 14px;
+    text-align: center;
+    border-bottom: 1px solid #333;
+}
+
+#tabela-apostas thead th {
+    background-color: rgba(0, 0, 0, 0.3);
+    color: #aaa;
+    font-weight: bold;
+    text-transform: uppercase;
+    font-size: 0.9em;
+}
+
 .win { color: #4CAF50; font-weight: bold; }
 .red { color: #FF6347; font-weight: bold; }
 .pending { color: #FFA500; font-weight: bold; } 
-.btn-fechar { background-color: #007bbd; color: white; border: none; padding: 6px 10px; cursor: pointer; border-radius: 4px; font-size: 0.85em; margin: 2px; transition: background-color 0.3s; }
-.btn-fechar:hover { background-color: #005f99; }
 
-/* ========================================================= */
-/* TEMAS ESPORTIVOS E VISUAIS */
-/* ========================================================= */
-body.theme-futebol { --cor-primaria: #00aaff; --cor-fundo-container: #2c2c2c; --cor-fundo-principal: #121212; --imagem-fundo: linear-gradient(rgba(18, 18, 18, 0.9), rgba(18, 18, 18, 0.99)), url('https://images.unsplash.com/photo-1553779429-045a3e483424?q=80&w=2070&auto=format&fit=crop' ); }
-body.theme-nfl { --cor-primaria: #d4a04c; --cor-fundo-container: #1a2d1a; --cor-fundo-principal: #0d1a0d; --imagem-fundo: linear-gradient(rgba(13, 26, 13, 0.9), rgba(13, 26, 13, 0.99)), url('https://images.unsplash.com/photo-1574020982407-6a04e6a?q=80&w=1932&auto=format&fit=crop' ); }
-body.theme-nba { --cor-primaria: #f27a24; --cor-fundo-container: #332d2a; --cor-fundo-principal: #1a1715; --imagem-fundo: linear-gradient(rgba(26, 23, 21, 0.9), rgba(26, 23, 21, 0.99)), url('https://images.unsplash.com/photo-1546519638-68e109498ffc?q=80&w=2070&auto=format&fit=crop' ); }
-body.theme-gestao { --cor-primaria: #4CAF50; --cor-fundo-container: #2a2a3a; --cor-fundo-principal: #1a1a2a; --imagem-fundo: none; }
+.btn-fechar {
+    background-color: #007bbd;
+    color: white;
+    border: none;
+    padding: 6px 10px;
+    cursor: pointer;
+    border-radius: 4px;
+    font-size: 0.85em;
+    margin: 2px;
+    transition: background-color 0.3s;
+}
 
-/* Aplicação das Variáveis */
-body { background-color: var(--cor-fundo-principal); background-image: var(--imagem-fundo); }
-h1, .status-panel span, .tab-button, #tabela-apostas thead th, .bot-message { color: var(--cor-primaria); transition: color 0.5s ease; }
-.input-form, .status-panel, #tabela-apostas, .chat-container { background-color: var(--cor-fundo-container); transition: background-color 0.5s ease; }
-.tab-button.active { background-color: var(--cor-primaria); color: var(--cor-fundo-principal); border-bottom-color: var(--cor-primaria); }
-.input-form button, #chat-input-area button { background-color: var(--cor-primaria); }
+.btn-fechar:hover {
+    background-color: #005f99;
+}
 
 /* ========================================================= */
 /* RESPONSIVIDADE */
 /* ========================================================= */
 @media (max-width: 768px) {
-    .container { margin: 10px auto; padding: 10px; }
-    .status-panel p { flex-basis: 45%; text-align: center; margin: 5px 0; }
-    .input-form input, .input-form select, .input-form button, #chat-input-area input, #chat-input-area button { flex: 1 1 100%; }
+    .container {
+        margin: 10px auto;
+        padding: 10px;
+    }
+    .status-panel p {
+        flex-basis: 45%; 
+        text-align: center;
+        margin: 5px 0;
+    }
+    .input-form input, 
+    .input-form select,
+    .input-form button,
+    .chat-input-area input,
+    .chat-input-area button {
+        flex: 1 1 100%; 
+    }
 }
+
 @media (max-width: 600px) {
-    #tabela-apostas thead { display: none; }
-    #tabela-apostas tr { display: block; margin-bottom: 15px; border: 1px solid #333; border-radius: 5px; }
-    #tabela-apostas td { display: block; text-align: right; border-bottom: 1px solid #333; position: relative; padding: 10px 10px 10px 45%; }
-    #tabela-apostas td:last-child { border-bottom: none; }
-    #tabela-apostas td::before { content: attr(data-label); position: absolute; left: 10px; font-weight: bold; color: #888; text-transform: uppercase; text-align: left; width: 40%; }
-    #tabela-apostas td[data-label="Ação"] { text-align: center; padding-left: 10px; }
-    #tabela-apostas td[data-label="Ação"]::before { content: ""; }
+    #tabela-apostas thead {
+        display: none;
+    }
+    #tabela-apostas tr {
+        display: block;
+        margin-bottom: 15px;
+        border: 1px solid #333;
+        border-radius: 5px;
+        padding: 10px;
+    }
+    #tabela-apostas td {
+        display: block;
+        text-align: right;
+        border-bottom: 1px dotted #444;
+        position: relative;
+        padding: 10px 10px 10px 50%;
+    }
+    #tabela-apostas td:last-child {
+        border-bottom: none;
+    }
+    #tabela-apostas td::before {
+        content: attr(data-label);
+        position: absolute;
+        left: 10px;
+        font-weight: bold;
+        color: #888;
+        text-transform: uppercase;
+    }
 }
