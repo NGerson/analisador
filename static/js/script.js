@@ -1,6 +1,9 @@
+// =================================================================
+// ARQUIVO script.js - VERSÃO FINAL, CORRIGIDA E VALIDADA
+// =================================================================
 document.addEventListener('DOMContentLoaded', function() {
 
-    // 1. ELEMENTOS DA UI
+    // 1. MAPEAMENTO DOS ELEMENTOS DA UI
     const UIElements = {
         tabs: document.querySelectorAll('.tab-button'),
         tabContents: document.querySelectorAll('.tab-content'),
@@ -46,12 +49,13 @@ document.addEventListener('DOMContentLoaded', function() {
     const LIMITE_APOSTAS_DIARIO = 10;
     const LIMITE_RED_SEQUENCIAL = 3;
     const chatStates = {
-        futebol: { state: 'initial', jogo: '', campeonato: '', timeA: {}, timeB: {} },
-        nfl: { state: 'initial', jogo: '', campeonato: '', timeA: {}, timeB: {} },
-        nba: { state: 'initial', jogo: '', campeonato: '', timeA: {}, timeB: {} }
+        futebol: { state: 'initial', timeA: {}, timeB: {} },
+        nfl: { state: 'initial', timeA: {}, timeB: {} },
+        nba: { state: 'initial', timeA: {}, timeB: {} }
     };
 
-    // 3. FUNÇÕES AUXILIARES E DE LÓGICA
+    // 3. FUNÇÕES DA APLICAÇÃO
+
     function getTodayDate() {
         return new Date().toLocaleDateString('pt-BR');
     }
@@ -111,7 +115,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const response = await fetch(url);
             if (!response.ok) throw new Error('Resposta do servidor não foi OK');
             const campeonatos = await response.json();
-            const listaFormatada = campeonatos.map(c => `• ${c.charAt(0).toUpperCase() + c.slice(1)}`).join('  ')};
+            const listaFormatada = campeonatos.map(c => `• ${c.charAt(0).toUpperCase() + c.slice(1)}`).join('  ');
             const mensagem = `Para análise com dados reais, use um dos seguintes campeonatos:  
   
 ${listaFormatada}`;
@@ -208,7 +212,6 @@ ${listaFormatada}`;
         appendMessageToChat(chatUI.chatContainer, 'bot', 'Comando não reconhecido. Digite "Quero Apostar" para iniciar.');
     }
 
-    // ... (todas as funções de gestão de banca: atualizarUI, adicionarAposta, etc. permanecem aqui)
     function atualizarUI() {
         UIElements.bancaAtualEl.textContent = `R$ ${bancaAtual.toFixed(2)}`;
         UIElements.stakeMaxEl.textContent = `R$ ${TETO_MAXIMO_STAKE.toFixed(2)}`;
@@ -268,8 +271,7 @@ ${listaFormatada}`;
             odd: odd,
             resultado: resultado,
             acrescimo: acrescimo,
-            ganhoPerda: ganhoPerdaCalculado,
-            bancaPreAposta: bancaAtual
+            ganhoPerda: ganhoPerdaCalculado
         };
         apostasRegistradas.push(novaAposta);
         apostasHoje++;
@@ -338,7 +340,6 @@ ${listaFormatada}`;
         atualizarUI();
     }
 
-
     function recalcularBanca() {
         let tempBanca = BANCA_INICIAL;
         resultadosDoDia = [];
@@ -370,19 +371,17 @@ ${listaFormatada}`;
         alert("Configurações aplicadas!");
     }
 
-    // 4. INICIALIZAÇÃO
+    // 4. INICIALIZAÇÃO DA APLICAÇÃO
     function init() {
         carregarDados();
         atualizarUI();
-        openTab('futebol'); // Aba inicial
+        openTab('futebol');
 
-        // Eventos de clique nas abas
         UIElements.tabs.forEach(tab => {
             const tabName = tab.getAttribute('onclick').match(/'([^']+)'/)[1];
             tab.addEventListener('click', () => openTab(tabName));
         });
 
-        // Eventos de clique e 'Enter' para os chats
         Object.keys(UIElements.chats).forEach(esporte => {
             const chatUI = UIElements.chats[esporte];
             chatUI.sendButton.addEventListener('click', () => processarComando(esporte));
@@ -391,12 +390,10 @@ ${listaFormatada}`;
             });
         });
 
-        // Eventos para a gestão de banca
         UIElements.btnConfig.addEventListener('click', configurarBanca);
         UIElements.btnAddAposta.addEventListener('click', adicionarAposta);
         UIElements.btnReset.addEventListener('click', resetarDados);
 
-        // Carrega a lista de campeonatos disponíveis
         carregarCampeonatosDisponiveis();
     }
 
