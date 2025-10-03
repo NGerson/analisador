@@ -49,72 +49,70 @@ def calcular_confianca(diferenca_poder, min_conf=65, max_conf=95):
 def analisar_futebol(time_casa, time_fora, campeonato):
     """
     Função de análise para Futebol.
-    Agora inclui simulação e análise para Gols, Vencedor, Escanteios e Cartões.
+    SEMPRE gera uma análise para Gols, Handicap, Escanteios e Cartões.
     """
     print(f"Analisando FUTEBOL: {time_casa} vs {time_fora}")
 
     # --- SIMULAÇÃO DE DADOS (COMO SE VIESSEM DO SOFASCORE) ---
-    # Notas de 0 a 5
     ataque_casa = round(random.uniform(2.5, 5.0), 1)
     defesa_casa = round(random.uniform(2.5, 5.0), 1)
     ataque_fora = round(random.uniform(2.0, 4.5), 1)
     defesa_fora = round(random.uniform(2.0, 4.8), 1)
-    
-    # Novas estatísticas simuladas
     media_escanteios_casa = round(random.uniform(3.5, 8.0), 1)
     media_escanteios_fora = round(random.uniform(3.0, 7.5), 1)
     media_cartoes_casa = round(random.uniform(1.5, 4.0), 1)
     media_cartoes_fora = round(random.uniform(1.5, 4.0), 1)
 
-    # --- LÓGICA DE ANÁLISE ---
-    poder_ataque_casa = ataque_casa - defesa_fora
-    poder_ataque_fora = ataque_fora - defesa_casa
-    
     tips = []
     
-    # 1. Análise de Gols
-    diferenca_gols = (poder_ataque_casa + poder_ataque_fora) / 2
-    confianca_gols = calcular_confianca(diferenca_gols)
-    if poder_ataque_casa > 1.5 and poder_ataque_fora > 1.0:
-        tips.append({"mercado": "Gols (Over/Under)", "entrada": "Mais de 2.5 gols", "odd": f"~{round(random.uniform(1.75, 2.10), 2)}", "justificativa": "Ataques fortes contra defesas vulneráveis indicam um jogo aberto.", "confianca": f"{confianca_gols}%"})
+    # --- 1. ANÁLISE DE GOLS (SEMPRE GERADA) ---
+    poder_ataque_casa = ataque_casa - defesa_fora
+    poder_ataque_fora = ataque_fora - defesa_casa
+    tendencia_gols = (poder_ataque_casa + poder_ataque_fora) / 2
+    confianca_gols = calcular_confianca(tendencia_gols)
     
-    # 2. Análise de Vencedor
-    diferenca_vencedor = poder_ataque_casa - poder_ataque_fora
-    if abs(diferenca_vencedor) > 1.2:
-        vencedor = time_casa if diferenca_vencedor > 0 else time_fora
-        tips.append({"mercado": "Resultado", "entrada": f"Handicap Asiático {vencedor} -0.5", "odd": f"~{round(random.uniform(1.90, 2.30), 2)}", "justificativa": f"Superioridade técnica e tática para {vencedor}.", "confianca": f"{calcular_confianca(diferenca_vencedor)}%"})
+    if tendencia_gols > 0.5:
+        tips.append({"mercado": "Gols (Over/Under)", "entrada": "Mais de 2.5 gols", "odd": f"~{round(random.uniform(1.80, 2.15), 2)}", "justificativa": "A tendência ofensiva dos times é alta, favorecendo um jogo com gols.", "confianca": f"{confianca_gols}%"})
+    else:
+        tips.append({"mercado": "Gols (Over/Under)", "entrada": "Menos de 2.5 gols", "odd": f"~{round(random.uniform(1.75, 2.00), 2)}", "justificativa": "As defesas se sobressaem aos ataques, indicando um placar baixo.", "confianca": f"{confianca_gols}%"})
 
-    # 3. NOVA ANÁLISE DE ESCANTEIOS
+    # --- 2. ANÁLISE DE HANDICAP ASIÁTICO (SEMPRE GERADA) ---
+    diferenca_poder = poder_ataque_casa - poder_ataque_fora
+    confianca_handicap = calcular_confianca(diferenca_poder)
+    
+    if diferenca_poder > 0.2:
+        favorito = time_casa
+        handicap = "-0.5"
+    elif diferenca_poder < -0.2:
+        favorito = time_fora
+        handicap = "-0.5"
+    else:
+        favorito = time_casa # Em caso de empate, aposta no time da casa por segurança
+        handicap = "0.0"
+
+    tips.append({"mercado": "Handicap Asiático", "entrada": f"{favorito} {handicap}", "odd": f"~{round(random.uniform(1.85, 2.25), 2)}", "justificativa": f"A análise projeta uma vantagem técnica para {favorito} nesta partida.", "confianca": f"{confianca_handicap}%"})
+
+    # --- 3. ANÁLISE DE ESCANTEIOS (SEMPRE GERADA) ---
     total_escanteios_esperado = media_escanteios_casa + media_escanteios_fora
-    confianca_escanteios = calcular_confianca((total_escanteios_esperado - 10) / 2)
-    
-    if total_escanteios_esperado > 10.5:
-        tips.append({
-            "mercado": "Escanteios",
-            "entrada": f"Mais de 9.5 escanteios",
-            "odd": f"~{round(random.uniform(1.80, 2.05), 2)}",
-            "justificativa": f"A média combinada de escanteios dos times ({total_escanteios_esperado:.1f}) é alta, indicando um jogo de muitos ataques laterais.",
-            "confianca": f"{confianca_escanteios}%"
-        })
+    tendencia_escanteios = (total_escanteios_esperado - 9.5) # Linha base de 9.5
+    confianca_escanteios = calcular_confianca(tendencia_escanteios / 2)
 
-    # 4. NOVA ANÁLISE DE CARTÕES
+    if tendencia_escanteios > 0:
+        tips.append({"mercado": "Escanteios", "entrada": "Mais de 9.5", "odd": f"~{round(random.uniform(1.80, 2.05), 2)}", "justificativa": f"A média combinada de {total_escanteios_esperado:.1f} escanteios sugere um jogo de muitos ataques.", "confianca": f"{confianca_escanteios}%"})
+    else:
+        tips.append({"mercado": "Escanteios", "entrada": "Menos de 9.5", "odd": f"~{round(random.uniform(1.70, 1.95), 2)}", "justificativa": f"A média combinada de {total_escanteios_esperado:.1f} escanteios indica um jogo mais cadenciado e com menos bolas na linha de fundo.", "confianca": f"{confianca_escanteios}%"})
+
+    # --- 4. ANÁLISE DE CARTÕES (SEMPRE GERADA) ---
     total_cartoes_esperado = media_cartoes_casa + media_cartoes_fora
-    confianca_cartoes = calcular_confianca((total_cartoes_esperado - 4) / 1.5)
-    
-    if total_cartoes_esperado > 4.5:
-        tips.append({
-            "mercado": "Cartões",
-            "entrada": f"Mais de 3.5 cartões",
-            "odd": f"~{round(random.uniform(1.75, 1.95), 2)}",
-            "justificativa": f"Ambos os times têm médias de cartões elevadas ({total_cartoes_esperado:.1f} no total), sugerindo um jogo faltoso.",
-            "confianca": f"{confianca_cartoes}%"
-        })
+    tendencia_cartoes = (total_cartoes_esperado - 4.5) # Linha base de 4.5
+    confianca_cartoes = calcular_confianca(tendencia_cartoes)
 
-    if not tips: 
-        # Adiciona uma aposta padrão caso nenhuma outra condição seja atendida
-        tips.append({"mercado": "Ambas Marcam", "entrada": "Sim", "odd": f"~{round(random.uniform(1.80, 2.20), 2)}", "justificativa": "Equilíbrio entre os times pode resultar em gols para ambos os lados.", "confianca": f"{calcular_confianca(diferenca_gols, 60, 85)}%"})
+    if tendencia_cartoes > 0:
+        tips.append({"mercado": "Cartões", "entrada": "Mais de 4.5", "odd": f"~{round(random.uniform(1.85, 2.10), 2)}", "justificativa": f"A média combinada de {total_cartoes_esperado:.1f} cartões indica um jogo de maior contato físico e disciplina tática.", "confianca": f"{confianca_cartoes}%"})
+    else:
+        tips.append({"mercado": "Cartões", "entrada": "Menos de 4.5", "odd": f"~{round(random.uniform(1.70, 1.90), 2)}", "justificativa": f"A média combinada de {total_cartoes_esperado:.1f} cartões sugere um jogo mais limpo e com menos interrupções.", "confianca": f"{confianca_cartoes}%"})
 
-    # Ordena as tips pela confiança para que a melhor sempre venha primeiro
+    # Ordena as 4 tips pela confiança para que a melhor sempre venha primeiro
     tips.sort(key=lambda x: int(x.get('confianca', '0').replace('%', '')), reverse=True)
 
     return {
@@ -124,7 +122,7 @@ def analisar_futebol(time_casa, time_fora, campeonato):
 
 def analisar_nfl(time_casa, time_fora, campeonato):
     print(f"Analisando NFL: {time_casa} vs {time_fora}")
-    ataque_casa = round(random.uniform(20, 35), 1) # Pontos por jogo
+    ataque_casa = round(random.uniform(20, 35), 1)
     defesa_fora = round(random.uniform(18, 30), 1)
     diferenca_pontos = ataque_casa - defesa_fora
     confianca = calcular_confianca(diferenca_pontos / 5, 70, 98)
@@ -141,7 +139,7 @@ def analisar_nfl(time_casa, time_fora, campeonato):
 
 def analisar_nba(time_casa, time_fora, campeonato):
     print(f"Analisando NBA: {time_casa} vs {time_fora}")
-    ataque_casa = round(random.uniform(105, 125), 1) # Pontos por jogo
+    ataque_casa = round(random.uniform(105, 125), 1)
     defesa_fora = round(random.uniform(105, 125), 1)
     diferenca_pontos = ataque_casa - defesa_fora
     confianca = calcular_confianca(diferenca_pontos / 3, 70, 95)
