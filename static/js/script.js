@@ -1,62 +1,9 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // ... (código anterior do script.js) ...
 
-    // NOVA FUNÇÃO para buscar e exibir os campeonatos
-    async function carregarCampeonatosDisponiveis() {
-        try {
-            // A URL completa para o endpoint no Render
-            const url = `${window.location.origin}/campeonatos`;
-            const response = await fetch(url);
-            if (!response.ok) {
-                throw new Error('Não foi possível carregar a lista de campeonatos.');
-            }
-            const campeonatos = await response.json();
-            
-            // Formata a lista para exibição
-            const listaFormatada = campeonatos.map(c => `• ${c.charAt(0).toUpperCase() + c.slice(1)}`).join('  
-');
-            
-            const mensagem = `Para análise com dados reais, use um dos seguintes campeonatos:  
-  
-${listaFormatada}`;
-            
-            // Adiciona a mensagem ao chat de futebol
-            const chatFutebol = UIElements.chats.futebol.chatContainer;
-            const msgEl = document.createElement('p');
-            msgEl.classList.add('bot-message', 'info-message'); // Adiciona uma classe para estilização opcional
-            msgEl.innerHTML = mensagem; // Usa innerHTML para renderizar as quebras de linha
-            chatFutebol.appendChild(msgEl);
-            chatFutebol.scrollTop = chatFutebol.scrollHeight;
-
-        } catch (error) {
-            console.error("Erro ao carregar campeonatos:", error);
-            // Adiciona uma mensagem de erro no chat se a busca falhar
-            const chatFutebol = UIElements.chats.futebol.chatContainer;
-            appendMessageToChat(chatFutebol, 'bot', 'Não foi possível carregar a lista de campeonatos disponíveis no momento.');
-        }
-    }
-
-    // Função init (no final do arquivo)
-    function init() {
-        // ... (código anterior da função init) ...
-
-        // CHAMA A NOVA FUNÇÃO ao inicializar a aplicação
-        carregarCampeonatosDisponiveis();
-    }
-
-    init();
-});
-
-// O resto do seu script.js (UIElements, openTab, processarComando, etc.) permanece aqui.
-// Para garantir, aqui está o arquivo completo:
-
-document.addEventListener('DOMContentLoaded', function() {
-
+    // 1. ELEMENTOS DA UI
     const UIElements = {
         tabs: document.querySelectorAll('.tab-button'),
         tabContents: document.querySelectorAll('.tab-content'),
-        
-        // Mapeamento para cada aba de esporte
         chats: {
             futebol: {
                 chatContainer: document.getElementById('chat-futebol'),
@@ -74,8 +21,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 sendButton: document.getElementById('send-button-nba')
             }
         },
-
-        // Gestão de Banca
         bancaAtualEl: document.getElementById('banca-atual'),
         stakeMaxEl: document.getElementById('stake-max'),
         apostasHojeEl: document.getElementById('apostas-hoje'),
@@ -90,6 +35,7 @@ document.addEventListener('DOMContentLoaded', function() {
         btnReset: document.getElementById('reset-button')
     };
 
+    // 2. ESTADO DA APLICAÇÃO
     let bancaAtual = 0.00;
     let apostasHoje = 0;
     let resultadosDoDia = [];
@@ -99,14 +45,13 @@ document.addEventListener('DOMContentLoaded', function() {
     let TETO_MAXIMO_STAKE = 3.00;
     const LIMITE_APOSTAS_DIARIO = 10;
     const LIMITE_RED_SEQUENCIAL = 3;
-
-    // Estado do Chat para cada esporte
     const chatStates = {
         futebol: { state: 'initial', jogo: '', campeonato: '', timeA: {}, timeB: {} },
         nfl: { state: 'initial', jogo: '', campeonato: '', timeA: {}, timeB: {} },
         nba: { state: 'initial', jogo: '', campeonato: '', timeA: {}, timeB: {} }
     };
 
+    // 3. FUNÇÕES AUXILIARES E DE LÓGICA
     function getTodayDate() {
         return new Date().toLocaleDateString('pt-BR');
     }
@@ -116,11 +61,7 @@ document.addEventListener('DOMContentLoaded', function() {
             banca: bancaAtual,
             apostas: apostasRegistradas,
             apostasHojeCount: apostasHoje,
-            config: {
-                bancaInicial: BANCA_INICIAL,
-                metaMinima: META_MINIMA,
-                stakeMaxima: TETO_MAXIMO_STAKE
-            }
+            config: { bancaInicial: BANCA_INICIAL, metaMinima: META_MINIMA, stakeMaxima: TETO_MAXIMO_STAKE }
         };
         localStorage.setItem('gestaoBancaData', JSON.stringify(dados));
     }
@@ -136,45 +77,14 @@ document.addEventListener('DOMContentLoaded', function() {
             META_MINIMA = dados.config.metaMinima || 200.00;
             TETO_MAXIMO_STAKE = dados.config.stakeMaxima || 3.00;
         }
-        configBancaInicialEl.value = BANCA_INICIAL.toFixed(2);
-        configMetaMinimaEl.value = META_MINIMA.toFixed(2);
-        configStakeMaxEl.value = TETO_MAXIMO_STAKE.toFixed(2);
+        UIElements.configBancaInicialEl.value = BANCA_INICIAL.toFixed(2);
+        UIElements.configMetaMinimaEl.value = META_MINIMA.toFixed(2);
+        UIElements.configStakeMaxEl.value = TETO_MAXIMO_STAKE.toFixed(2);
         if (apostasRegistradas.length === 0) {
             bancaAtual = BANCA_INICIAL;
         } else {
             recalcularBanca();
         }
-    }
-
-    function resetarDados() {
-        if (confirm(`ATENÇÃO: Deseja RESETAR todos os dados? A banca voltará para R$ ${BANCA_INICIAL.toFixed(2)}.`)) {
-            bancaAtual = BANCA_INICIAL;
-            apostasRegistradas = [];
-            apostasHoje = 0;
-            resultadosDoDia = [];
-            salvarDados();
-            atualizarUI();
-            alert("Dados resetados com sucesso!");
-        }
-    }
-
-    function configurarBanca() {
-        const novaBancaInicial = parseFloat(configBancaInicialEl.value);
-        const novaMetaMinima = parseFloat(configMetaMinimaEl.value);
-        const novaStakeMax = parseFloat(configStakeMaxEl.value);
-        if (isNaN(novaBancaInicial) || isNaN(novaStakeMax) || isNaN(novaMetaMinima) || novaBancaInicial <= 0) {
-            alert("Preencha as configurações com valores válidos.");
-            return;
-        }
-        BANCA_INICIAL = novaBancaInicial;
-        META_MINIMA = novaMetaMinima;
-        TETO_MAXIMO_STAKE = novaStakeMax;
-        if (apostasRegistradas.length === 0) {
-            bancaAtual = BANCA_INICIAL;
-        }
-        salvarDados();
-        atualizarUI();
-        alert("Configurações aplicadas!");
     }
 
     function openTab(tabName) {
@@ -190,9 +100,31 @@ document.addEventListener('DOMContentLoaded', function() {
     function appendMessageToChat(chatContainer, sender, message) {
         const msgEl = document.createElement('p');
         msgEl.classList.add(sender === 'bot' ? 'bot-message' : 'user-message');
-        msgEl.innerHTML = message; // Use innerHTML para renderizar HTML
+        msgEl.innerHTML = message;
         chatContainer.appendChild(msgEl);
         chatContainer.scrollTop = chatContainer.scrollHeight;
+    }
+
+    async function carregarCampeonatosDisponiveis() {
+        try {
+            const url = `${window.location.origin}/campeonatos`;
+            const response = await fetch(url);
+            if (!response.ok) throw new Error('Resposta do servidor não foi OK');
+            const campeonatos = await response.json();
+            const listaFormatada = campeonatos.map(c => `• ${c.charAt(0).toUpperCase() + c.slice(1)}`).join('  ')};
+            const mensagem = `Para análise com dados reais, use um dos seguintes campeonatos:  
+  
+${listaFormatada}`;
+            const chatFutebol = UIElements.chats.futebol.chatContainer;
+            const msgEl = document.createElement('p');
+            msgEl.classList.add('bot-message', 'info-message');
+            msgEl.innerHTML = mensagem;
+            chatFutebol.appendChild(msgEl);
+            chatFutebol.scrollTop = chatFutebol.scrollHeight;
+        } catch (error) {
+            console.error("Erro ao carregar campeonatos:", error);
+            appendMessageToChat(UIElements.chats.futebol.chatContainer, 'bot', 'Não foi possível carregar a lista de campeonatos disponíveis.');
+        }
     }
 
     async function processarComando(esporte) {
@@ -222,7 +154,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         if (chatState.state === 'waiting_league') {
             chatState.campeonato = comando;
-            appendMessageToChat(chatUI.chatContainer, 'bot', `Ok, buscando análise para <strong>${chatState.timeA.nome} vs ${chatState.timeB.nome}</strong> no campeonato <strong>${chatState.campeonato}</strong>...`);
+            appendMessageToChat(chatUI.chatContainer, 'bot', `Ok, buscando análise para <strong>${chatState.timeA.nome} vs ${chatState.timeB.nome}</strong>...`);
             chatState.state = 'analyzing';
             
             try {
@@ -276,21 +208,22 @@ document.addEventListener('DOMContentLoaded', function() {
         appendMessageToChat(chatUI.chatContainer, 'bot', 'Comando não reconhecido. Digite "Quero Apostar" para iniciar.');
     }
 
+    // ... (todas as funções de gestão de banca: atualizarUI, adicionarAposta, etc. permanecem aqui)
     function atualizarUI() {
-        bancaAtualEl.textContent = `R$ ${bancaAtual.toFixed(2)}`;
-        stakeMaxEl.textContent = `R$ ${TETO_MAXIMO_STAKE.toFixed(2)}`;
-        apostasHojeEl.textContent = `${apostasHoje}/${LIMITE_APOSTAS_DIARIO}`;
-        dataHojeEl.textContent = getTodayDate();
+        UIElements.bancaAtualEl.textContent = `R$ ${bancaAtual.toFixed(2)}`;
+        UIElements.stakeMaxEl.textContent = `R$ ${TETO_MAXIMO_STAKE.toFixed(2)}`;
+        UIElements.apostasHojeEl.textContent = `${apostasHoje}/${LIMITE_APOSTAS_DIARIO}`;
+        UIElements.dataHojeEl.textContent = getTodayDate();
         renderizarTabela();
         verificarAlertas();
     }
 
     function verificarAlertas() {
-        alertaRiscoEl.className = 'alerta';
-        alertaRiscoEl.textContent = '';
+        UIElements.alertaRiscoEl.className = 'alerta';
+        UIElements.alertaRiscoEl.textContent = '';
         if (apostasHoje >= LIMITE_APOSTAS_DIARIO) {
-            alertaRiscoEl.classList.add('ativo', 'alerta-limite');
-            alertaRiscoEl.textContent = '⚠️ LIMITE DIÁRIO ATINGIDO!';
+            UIElements.alertaRiscoEl.classList.add('ativo', 'alerta-limite');
+            UIElements.alertaRiscoEl.textContent = '⚠️ LIMITE DIÁRIO ATINGIDO!';
         }
         let redSeguidos = 0;
         for (let i = resultadosDoDia.length - 1; i >= 0; i--) {
@@ -298,12 +231,12 @@ document.addEventListener('DOMContentLoaded', function() {
             else if (resultadosDoDia[i] === 'win') break;
         }
         if (redSeguidos >= LIMITE_RED_SEQUENCIAL) {
-            alertaRiscoEl.classList.add('ativo', 'alerta-stop');
-            alertaRiscoEl.textContent = `🚨 STOP LOSS! ${redSeguidos} REDs seguidos.`;
+            UIElements.alertaRiscoEl.classList.add('ativo', 'alerta-stop');
+            UIElements.alertaRiscoEl.textContent = `🚨 STOP LOSS! ${redSeguidos} REDs seguidos.`;
         }
         if (bancaAtual >= META_MINIMA) {
-            alertaRiscoEl.classList.add('ativo', 'alerta-limite');
-            alertaRiscoEl.textContent = `🏆 PARABÉNS! META ATINGIDA!`;
+            UIElements.alertaRiscoEl.classList.add('ativo', 'alerta-limite');
+            UIElements.alertaRiscoEl.textContent = `🏆 PARABÉNS! META ATINGIDA!`;
         }
     }
 
@@ -353,10 +286,10 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function renderizarTabela() {
-        tabelaBody.innerHTML = '';
+        UIElements.tabelaBody.innerHTML = '';
         let bancaExibicao = BANCA_INICIAL;
         apostasRegistradas.forEach((aposta, index) => {
-            const newRow = tabelaBody.insertRow();
+            const newRow = UIElements.tabelaBody.insertRow();
             let ganhoPerdaDisplay = aposta.ganhoPerda.toFixed(2);
             let bancaFinalDisplay;
             if (aposta.resultado !== 'pending') {
@@ -405,9 +338,10 @@ document.addEventListener('DOMContentLoaded', function() {
         atualizarUI();
     }
 
+
     function recalcularBanca() {
         let tempBanca = BANCA_INICIAL;
-        resultadosDoDia.length = 0;
+        resultadosDoDia = [];
         apostasRegistradas.forEach(aposta => {
             if (aposta.resultado !== 'pending') {
                 tempBanca += aposta.ganhoPerda;
@@ -417,36 +351,38 @@ document.addEventListener('DOMContentLoaded', function() {
         bancaAtual = tempBanca;
     }
 
-    async function carregarCampeonatosDisponiveis() {
-        try {
-            const url = `${window.location.origin}/campeonatos`;
-            const response = await fetch(url);
-            if (!response.ok) throw new Error('Resposta do servidor não foi OK');
-            const campeonatos = await response.json();
-            const listaFormatada = campeonatos.map(c => `• ${c.charAt(0).toUpperCase() + c.slice(1)}`).join('  ')};
-            const mensagem = `Para análise com dados reais, use um dos seguintes campeonatos:  
-  
-         ${listaFormatada}`;
-            const chatFutebol = UIElements.chats.futebol.chatContainer;
-            const msgEl = document.createElement('p');
-            msgEl.classList.add('bot-message', 'info-message');
-            msgEl.innerHTML = mensagem;
-            chatFutebol.appendChild(msgEl);
-            chatFutebol.scrollTop = chatFutebol.scrollHeight;
-        } catch (error) {
-            console.error("Erro ao carregar campeonatos:", error);
-            appendMessageToChat(UIElements.chats.futebol.chatContainer, 'bot', 'Não foi possível carregar a lista de campeonatos disponíveis.');
+    function configurarBanca() {
+        const novaBancaInicial = parseFloat(UIElements.configBancaInicialEl.value);
+        const novaMetaMinima = parseFloat(UIElements.configMetaMinimaEl.value);
+        const novaStakeMax = parseFloat(UIElements.configStakeMaxEl.value);
+        if (isNaN(novaBancaInicial) || isNaN(novaStakeMax) || isNaN(novaMetaMinima) || novaBancaInicial <= 0) {
+            alert("Preencha as configurações com valores válidos.");
+            return;
         }
+        BANCA_INICIAL = novaBancaInicial;
+        META_MINIMA = novaMetaMinima;
+        TETO_MAXIMO_STAKE = novaStakeMax;
+        if (apostasRegistradas.length === 0) {
+            bancaAtual = BANCA_INICIAL;
+        }
+        salvarDados();
+        atualizarUI();
+        alert("Configurações aplicadas!");
     }
 
+    // 4. INICIALIZAÇÃO
     function init() {
         carregarDados();
         atualizarUI();
-        openTab('futebol');
+        openTab('futebol'); // Aba inicial
+
+        // Eventos de clique nas abas
         UIElements.tabs.forEach(tab => {
             const tabName = tab.getAttribute('onclick').match(/'([^']+)'/)[1];
             tab.addEventListener('click', () => openTab(tabName));
         });
+
+        // Eventos de clique e 'Enter' para os chats
         Object.keys(UIElements.chats).forEach(esporte => {
             const chatUI = UIElements.chats[esporte];
             chatUI.sendButton.addEventListener('click', () => processarComando(esporte));
@@ -454,9 +390,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (event.key === 'Enter') processarComando(esporte);
             });
         });
+
+        // Eventos para a gestão de banca
         UIElements.btnConfig.addEventListener('click', configurarBanca);
         UIElements.btnAddAposta.addEventListener('click', adicionarAposta);
         UIElements.btnReset.addEventListener('click', resetarDados);
+
+        // Carrega a lista de campeonatos disponíveis
         carregarCampeonatosDisponiveis();
     }
 
