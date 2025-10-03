@@ -10,7 +10,6 @@ CORS(app)
 
 # --- CONFIGURAÇÕES DA API ---
 API_HOST = "v3.football.api-sports.io"
-# A chave é lida de forma segura das Variáveis de Ambiente do Render
 API_KEY = os.getenv("API_KEY") 
 
 # --- ROTAS DO FLASK ---
@@ -44,13 +43,19 @@ def analisar_jogo_api():
     try:
         headers = {'x-rapidapi-host': API_HOST, 'x-rapidapi-key': API_KEY}
         
-        ligas = requests.get(f"https://{API_HOST}/leagues", headers=headers, params={"search": campeonato_nome} ).json()['response']
+        ligas_response = requests.get(f"https://{API_HOST}/leagues", headers=headers, params={"search": campeonato_nome} )
+        ligas_response.raise_for_status() # Verifica se a requisição foi bem sucedida
+        ligas = ligas_response.json().get('response', [])
         if not ligas: return jsonify({"erro": f"Campeonato '{campeonato_nome}' não encontrado."})
         id_liga = ligas[0]['league']['id']
         
-        time_casa = requests.get(f"https://{API_HOST}/teams", headers=headers, params={"league": id_liga, "search": time_casa_nome} ).json()['response']
-        # AQUI ESTAVA O ERRO, AGORA CORRIGIDO: API_HOST
-        time_fora = requests.get(f"https://{API_HOST}/teams", headers=headers, params={"league": id_liga, "search": time_fora_nome} ).json()['response']
+        time_casa_response = requests.get(f"https://{API_HOST}/teams", headers=headers, params={"league": id_liga, "search": time_casa_nome} )
+        time_casa_response.raise_for_status()
+        time_casa = time_casa_response.json().get('response', [])
+        
+        time_fora_response = requests.get(f"https://{API_HOST}/teams", headers=headers, params={"league": id_liga, "search": time_fora_nome} )
+        time_fora_response.raise_for_status()
+        time_fora = time_fora_response.json().get('response', [])
         
         if not time_casa: return jsonify({"erro": f"Time '{time_casa_nome}' não encontrado no campeonato."})
         if not time_fora: return jsonify({"erro": f"Time '{time_fora_nome}' não encontrado no campeonato."})
@@ -59,10 +64,14 @@ def analisar_jogo_api():
 
         ano_atual = datetime.now().year
         params_stats = {"league": id_liga, "season": ano_atual, "team": id_time_casa}
-        stats_casa = requests.get(f"https://{API_HOST}/teams/statistics", headers=headers, params=params_stats ).json()['response']
+        stats_casa_response = requests.get(f"https://{API_HOST}/teams/statistics", headers=headers, params=params_stats )
+        stats_casa_response.raise_for_status()
+        stats_casa = stats_casa_response.json().get('response', {})
         
         params_stats["team"] = id_time_fora
-        stats_fora = requests.get(f"https://{API_HOST}/teams/statistics", headers=headers, params=params_stats ).json()['response']
+        stats_fora_response = requests.get(f"https://{API_HOST}/teams/statistics", headers=headers, params=params_stats )
+        stats_fora_response.raise_for_status()
+        stats_fora = stats_fora_response.json().get('response', {})
 
         if not stats_casa or not stats_fora:
             return jsonify({"erro": "Não foi possível obter estatísticas para um ou ambos os times nesta temporada."})
@@ -70,28 +79,42 @@ def analisar_jogo_api():
         resultado_analise = processar_dados_reais(stats_casa, stats_fora, time_casa[0]['team']['name'], time_fora[0]['team']['name'])
         return jsonify(resultado_analise)
 
+    except requests.exceptions.RequestException as e:
+        print(f"ERRO DE CONEXÃO COM A API: {e}")
+        return jsonify({"erro": "Falha ao conectar com o provedor de dados esportivos."}), 500
     except Exception as e:
-        print(f"ERRO NA API: {e}")
-        return jsonify({"erro": "Ocorreu um erro ao comunicar com a API de dados esportivos."}), 500
+        print(f"ERRO INESPERADO NO SERVIDOR: {e}")
+        return jsonify({"erro": "Ocorreu um erro interno no servidor de análise."}), 500
 
 def processar_dados_reais(stats_casa, stats_fora, nome_casa, nome_fora):
     tips = []
     
     try:
-        gols_pro_casa = float(stats_casa['goals']['for']['average']['total'])
-        gols_contra_casa = float(stats_casa['goals']['against']['average']['total'])
-        gols_pro_fora = float(stats_fora['goals']['for']['average']['total'])
-        gols_contra_fora = float(stats_fora['goals']['against']['average']['total'])
+        # Extração de dados segura usando .get() para evitar KeyErrors
+        gols_casa_data = stats_casa.get('goals', {})
+        gols_fora_data = stats_fora.get('goals', {})
+        cards_casa_data = stats_casa.get('cards', {})
+        cards_fora_data = stats_fora.get('cards', {})
+        fixtures_casa_data = stats_casa.get('fixtures', {})
+        fixtures_fora_data = stats_fora.get('fixtures', {})
+
+        gols_pro_casa = float(gols_casa_data.get('for', {}).get('average', {}).get('total', 0))
+        gols_contra_casa = float(gols_casa_data.get('against', {}).get('average', {}).get('total', 0))
+        gols_pro_fora = float(gols_fora_data.get('for', {}).get('average', {}).get('total', 0))
+        gols_contra_fora = float(gols_fora_data.get('against', {}).get('average', {}).get('total', 0))
         
-        jogos_casa = float(stats_casa['fixtures']['played']['total'] or 1)
-        jogos_fora = float(stats_fora['fixtures']['played']['total'] or 1)
+        # Prevenção de divisão por zero
+        jogos_casa = float(fixtures_casa_data.get('played', {}).get('total', 1) or 1)
+        jogos_fora = float(fixtures_fora_data.get('played', {}).get('total', 1) or 1)
 
-        cartoes_amarelos_casa = float(stats_casa['cards']['yellow'].get('total', 0) or 0) / jogos_casa
-        cartoes_amarelos_fora = float(stats_fora['cards']['yellow'].get('total', 0) or 0) / jogos_fora
-    except (TypeError, KeyError, ZeroDivisionError) as e:
-        print(f"Erro ao extrair dados: {e}")
-        return {"erro": "Formato de dados inesperado da API."}
+        cartoes_amarelos_casa = float(cards_casa_data.get('yellow', {}).get('total', 0)) / jogos_casa
+        cartoes_amarelos_fora = float(cards_fora_data.get('yellow', {}).get('total', 0)) / jogos_fora
 
+    except (TypeError, ValueError) as e:
+        print(f"Erro ao processar dados da API: {e}")
+        return {"erro": "Formato de dados da API inesperado."}
+
+    # Lógica de análise (mantida)
     tendencia_gols = (gols_pro_casa + gols_pro_fora) / 2
     if tendencia_gols > 1.4:
         tips.append({"mercado": "Gols", "entrada": "Mais de 2.5 gols", "justificativa": f"Média de gols combinada alta ({tendencia_gols:.2f} por jogo).", "confianca": f"{int(65 + tendencia_gols * 10)}%"})
@@ -118,6 +141,7 @@ def processar_dados_reais(stats_casa, stats_fora, nome_casa, nome_fora):
     tips.sort(key=lambda x: int(x.get('confianca', '0').replace('%', '')), reverse=True)
     return {"melhor_aposta": tips[0], "outras_opcoes": tips[1:]}
 
+# Funções de simulação para NFL e NBA (mantidas como antes)
 def analisar_nfl(time_casa, time_fora, campeonato): return {"melhor_aposta": {"mercado": "NFL (Simulado)", "entrada": "Análise não implementada com dados reais."}}
 def analisar_nba(time_casa, time_fora, campeonato): return {"melhor_aposta": {"mercado": "NBA (Simulado)", "entrada": "Análise não implementada com dados reais."}}
 
