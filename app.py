@@ -1,5 +1,5 @@
 # =================================================================
-# ARQUIVO servidor.py - VERSÃO FINAL SIMPLIFICADA
+# ARQUIVO app.py - NOME CORRIGIDO PARA COMPATIBILIDADE
 # =================================================================
 import os
 import requests
@@ -116,4 +116,3 @@ def analisar_jogo_api():
         return jsonify({"erro": f"Falha ao conectar com a API: {e}"}), 500
     except Exception as e:
         return jsonify({"erro": f"Erro interno no servidor: {e}"}), 500
-
