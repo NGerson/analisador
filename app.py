@@ -1,5 +1,5 @@
 # =================================================================
-# ARQUIVO app.py - VERSÃO COM FLUXO DE CONVERSA
+# ARQUIVO app.py - VERSÃO COM FLUXO DE CONVERSA CORRIGIDO
 # =================================================================
 import os
 import requests
@@ -8,12 +8,11 @@ from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
 import logging
 
-# --- CONFIGURAÇÃO DA APLICAÇÃO ---
+# --- CONFIGURAÇÃO ---
 app = Flask(__name__, static_folder='static', template_folder='templates')
 CORS(app)
 logging.basicConfig(level=logging.INFO)
 
-# --- CONFIGURAÇÃO DA API FOOTBALL-DATA.ORG ---
 API_BASE_URL = "https://api.football-data.org/v4/"
 API_KEY = os.getenv("FOOTBALL_DATA_API_KEY" )
 HEADERS = {'X-Auth-Token': API_KEY}
@@ -24,13 +23,13 @@ LIGAS_DISPONIVEIS = {
     "champions league": "CL"
 }
 
-# --- GERENCIADOR DE ESTADO DA CONVERSA ---
-# Este dicionário simples irá guardar o estado de cada "sessão" de chat.
-# Usaremos o esporte ('futebol', 'nba', etc.) como ID da sessão.
+# --- GERENCIADOR DE ESTADO ---
 user_sessions = {}
 
-# --- FUNÇÕES DE ANÁLISE (SEU CÓDIGO ORIGINAL, SEM MUDANÇAS) ---
+# --- FUNÇÕES DE ANÁLISE (SEU CÓDIGO ORIGINAL) ---
 def analisar_jogo_com_dados_reais(time_casa_nome, time_fora_nome, id_liga):
+    # (Seu código de análise original vai aqui, sem nenhuma alteração)
+    # ... (copie e cole sua função analisar_jogo_com_dados_reais aqui)
     try:
         response = requests.get(f"{API_BASE_URL}competitions/{id_liga}/standings", headers=HEADERS)
         response.raise_for_status()
@@ -50,7 +49,7 @@ def analisar_jogo_com_dados_reais(time_casa_nome, time_fora_nome, id_liga):
                 stats_fora = time
         
         if not stats_casa or not stats_fora:
-            return {"erro": "Um dos times não foi encontrado na classificação desta liga. Verifique a ortografia."}
+            return {"erro": f"Um ou ambos os times ('{time_casa_nome}', '{time_fora_nome}') não foram encontrados na classificação. Verifique a ortografia."}
 
         tips = []
         avg_gols_casa = (stats_casa['goalsFor'] + stats_fora['goalsAgainst']) / 2 / stats_casa['playedGames']
@@ -86,20 +85,20 @@ def analisar_jogo_com_dados_reais(time_casa_nome, time_fora_nome, id_liga):
         logging.error(f"Erro inesperado na análise: {e}")
         return {"erro": "Ocorreu um erro interno ao processar a análise."}
 
+
 # --- ROTAS DA APLICAÇÃO ---
 @app.route('/')
 def home():
     return render_template('index.html')
 
-# --- ROTA DE ANÁLISE COM LÓGICA DE CONVERSA ---
 @app.route('/analisar', methods=['POST'])
 def analisar_conversa():
     dados = request.get_json()
     esporte = dados.get('esporte')
     mensagem = dados.get('mensagem', '').lower()
-    session_id = esporte # Usamos o esporte como ID da sessão
+    session_id = esporte
 
-    # Verifica se o usuário quer iniciar uma nova análise
+    # Se o usuário quer começar, definimos o estado e pedimos os dados.
     if "quero apostar" in mensagem:
         user_sessions[session_id] = {"state": "AWAITING_GAME_INFO"}
         return jsonify({
@@ -107,10 +106,9 @@ def analisar_conversa():
 <code>Nome do Campeonato, Time da Casa vs Time Visitante</code>"
         })
 
-    # Verifica se estamos esperando as informações do jogo
+    # Se o estado é de espera, tentamos processar os dados.
     elif user_sessions.get(session_id, {}).get("state") == "AWAITING_GAME_INFO":
         try:
-            # Tenta extrair as informações da mensagem do usuário
             campeonato_raw, times_raw = mensagem.split(',')
             time_casa, time_fora = times_raw.split('vs')
             
@@ -123,25 +121,20 @@ def analisar_conversa():
             if not id_liga_encontrada:
                 return jsonify({"erro": "Campeonato não encontrado ou não suportado. Tente novamente."})
 
-            # Realiza a análise com os dados extraídos
             resultado = analisar_jogo_com_dados_reais(time_casa, time_fora, id_liga_encontrada)
-            
-            # Limpa o estado da sessão após a análise
-            user_sessions.pop(session_id, None) 
+            user_sessions.pop(session_id, None)  # Limpa a sessão
             
             if "erro" in resultado:
                 return jsonify(resultado), 400
-            
             return jsonify(resultado)
 
         except (ValueError, KeyError):
-            # Se o formato da mensagem estiver errado, pede para tentar novamente
             return jsonify({
                 "erro": "Formato inválido. Por favor, use o formato:   
 <code>Nome do Campeonato, Time da Casa vs Time Visitante</code>"
             })
     
-    # Se não for nenhuma das opções, retorna uma resposta padrão
+    # Se não for nenhum dos casos, é uma mensagem fora de contexto.
     else:
         return jsonify({
             "bot_response": "Não entendi. Digite 'Quero Apostar' para iniciar uma nova análise."
