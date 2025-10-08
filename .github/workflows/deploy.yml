@@ -26,15 +26,15 @@ jobs:
           password: ${{ secrets.VPS_PASSWORD }}
           port: 22
           script: |
-            set -e # Adiciona um comando para parar o script se algo der errado
-            echo "Conectado ao servidor. Iniciando deploy..."
+            set -e # Para o script se qualquer comando falhar
+            echo "--> Conectado ao servidor. Iniciando deploy..."
             cd /root/analisador
-            echo "Puxando atualizações do repositório..."
+            echo "--> Puxando atualizações do repositório..."
             git pull
-            echo "Ativando ambiente virtual..."
+            echo "--> Ativando ambiente virtual..."
             source .venv/bin/activate
-            echo "Instalando dependências..."
+            echo "--> Instalando dependências..."
             pip install -r requirements.txt
-            echo "Reiniciando o serviço..."
+            echo "--> Reiniciando o serviço..."
             sudo systemctl restart analisador
-            echo "Deploy concluído com sucesso!"
+            echo "--> Deploy concluído com sucesso!"
