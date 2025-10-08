@@ -1,0 +1,41 @@
+# NOME NOVO PARA O WORKFLOW
+name: Automação de Deploy V2
+
+on:
+  push:
+    branches:
+      # NOME DO BRANCH CORRETO
+      - main # <--- MUDE PARA 'master' SE O NOME DO SEU BRANCH FOR 'master'
+
+jobs:
+  deploy: # NOME DO JOB MUDADO
+    runs-on: ubuntu-latest
+    steps:
+      - name: 1. Checkout do código
+        uses: actions/checkout@v3
+
+      - name: 2. Verificar Segredos (Debug OBRIGATÓRIO)
+        run: |
+          echo "Host do VPS: ${{ secrets.VPS_HOST }}"
+          echo "Usuário do VPS: ${{ secrets.VPS_USERNAME }}"
+          echo "A senha foi encontrada? ${{ secrets.VPS_PASSWORD != '' }}"
+
+      - name: 3. Implantar na VPS
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USERNAME }}
+          password: ${{ secrets.VPS_PASSWORD }}
+          port: 22
+          script: |
+            set -e
+            echo "--> Conectado. Iniciando deploy..."
+            cd /root/analisador
+            echo "--> Baixando código mais recente..."
+            git pull
+            echo "--> Instalando dependências..."
+            source .venv/bin/activate
+            pip install -r requirements.txt
+            echo "--> Reiniciando serviço da aplicação..."
+            sudo systemctl restart analisador
+            echo "--> DEPLOY CONCLUÍDO!"
