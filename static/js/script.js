@@ -1,4 +1,3 @@
-// Espera o documento HTML ser completamente carregado
 document.addEventListener('DOMContentLoaded', () => {
 
     // --- GERENCIAMENTO DAS ABAS ---
@@ -7,11 +6,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     tabs.forEach(tab => {
         tab.addEventListener('click', () => {
-            // Remove a classe 'active' de todas as abas e conteúdos
             tabs.forEach(t => t.classList.remove('active'));
             tabContents.forEach(c => c.classList.remove('active'));
-
-            // Adiciona a classe 'active' na aba clicada e no seu conteúdo correspondente
             tab.classList.add('active');
             const targetTabContent = document.getElementById(tab.dataset.tab + '-tab');
             if (targetTabContent) {
@@ -20,7 +16,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Ativa a primeira aba por padrão
     if (tabs.length > 0) {
         tabs[0].click();
     }
@@ -38,17 +33,15 @@ document.addEventListener('DOMContentLoaded', () => {
         nba: document.getElementById('chat-input-nba')
     };
 
-    // Adiciona o evento de clique para cada botão de "Enviar"
     for (const esporte in sendButtons) {
         if (sendButtons[esporte]) {
             sendButtons[esporte].addEventListener('click', () => {
                 const userInput = chatInputs[esporte].value;
                 if (userInput.trim() !== "") {
-                    iniciarAnalise(esporte, userInput);
+                    handleUserMessage(esporte, userInput);
                 }
             });
 
-            // Permite enviar com a tecla Enter
             chatInputs[esporte].addEventListener('keypress', (event) => {
                 if (event.key === 'Enter') {
                     sendButtons[esporte].click();
@@ -57,53 +50,64 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
     
-    // Função para adicionar mensagens ao chat
     function appendMessage(esporte, sender, message) {
         const chatContainer = document.getElementById(`chat-${esporte}`);
         if (chatContainer) {
             const messageElement = document.createElement('p');
             messageElement.className = `${sender}-message`;
-            messageElement.innerHTML = message; // Usamos innerHTML para renderizar o HTML
+            messageElement.innerHTML = message;
             chatContainer.appendChild(messageElement);
-            chatContainer.scrollTop = chatContainer.scrollHeight; // Rola para a última mensagem
+            chatContainer.scrollTop = chatContainer.scrollHeight;
         }
     }
 
-    // Função para iniciar a análise (comunicação com o backend)
-    async function iniciarAnalise(esporte, mensagem) {
+    async function handleUserMessage(esporte, mensagem) {
         appendMessage(esporte, 'user', mensagem);
-        chatInputs[esporte].value = ''; // Limpa o input
+        chatInputs[esporte].value = '';
 
-        appendMessage(esporte, 'bot', 'Analisando, por favor aguarde...');
+        // Mostra "Analisando..." apenas se não for o início da conversa
+        if (mensagem.toLowerCase().indexOf('quero apostar') === -1) {
+             appendMessage(esporte, 'bot', 'Analisando, por favor aguarde...');
+        }
 
         try {
             const response = await fetch('/analisar', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ esporte: esporte, mensagem: mensagem }),
             });
 
             if (!response.ok) {
-                throw new Error(`Erro de rede: ${response.statusText}`);
+                const errorData = await response.json();
+                throw new Error(errorData.erro || `Erro de rede: ${response.statusText}`);
             }
 
             const data = await response.json();
-            exibirResultadoAnalise(esporte, data);
+
+            // Remove a mensagem "Analisando..." se ela existir
+            const analyzingMessage = Array.from(document.querySelectorAll(`#chat-${esporte} .bot-message`)).pop();
+            if (analyzingMessage && analyzingMessage.textContent.includes('Analisando')) {
+                analyzingMessage.remove();
+            }
+
+            // Verifica o tipo de resposta do backend
+            if (data.bot_response) {
+                // É uma resposta de texto simples (ex: pedido de mais informações)
+                appendMessage(esporte, 'bot', data.bot_response);
+            } else if (data.melhor_aposta) {
+                // É o resultado final da análise
+                exibirResultadoAnalise(esporte, data);
+            } else if (data.erro) {
+                // É uma mensagem de erro
+                appendMessage(esporte, 'bot', `⚠️ Erro: ${data.erro}`);
+            }
 
         } catch (error) {
-            appendMessage(esporte, 'bot', `⚠️ Erro na comunicação com o servidor: ${error.message}`);
+            appendMessage(esporte, 'bot', `⚠️ Erro na comunicação: ${error.message}`);
         }
     }
 
-    // Função que você me enviou (colocada aqui dentro do escopo)
     function exibirResultadoAnalise(esporte, data) {
-        if (data.erro) {
-            appendMessage(esporte, 'bot', `⚠️ Erro: ${data.erro}`);
-            return;
-        }
-
         const melhorAposta = data.melhor_aposta;
         let resultadoHTML = `<strong>🚀 Melhor Entrada:</strong> ${melhorAposta.mercado}: <strong>${melhorAposta.palpite}</strong> (Confiança: ${melhorAposta.confianca}%)  
 <em>${melhorAposta.justificativa}</em>`;
@@ -117,10 +121,6 @@ document.addEventListener('DOMContentLoaded', () => {
 • ${opcao.mercado}: <strong>${opcao.palpite}</strong> (${opcao.confianca}%)`;
             });
         }
-
         appendMessage(esporte, 'bot', resultadoHTML);
     }
-
-    // Aqui você adicionaria a lógica da aba "Gestão"
-    // ...
 });
