@@ -1,42 +1,27 @@
-name: Deploy to VPS
+name: Implantar na VPS
 
-# Este workflow roda toda vez que você faz um 'push' para a branch 'main'
 on:
   push:
     branches:
-      - main
+      - master
 
 jobs:
-  deploy:
-    # O robô vai usar um ambiente virtual do Ubuntu para rodar
+  implantar:
     runs-on: ubuntu-latest
-
     steps:
-    # Passo 1: Baixar o seu código para o ambiente do robô
-    - name: Checkout code
-      uses: actions/checkout@v3
+      - name: Checkout do código
+        uses: actions/checkout@v3
 
-    # Passo 2: Conectar na sua VPS e executar os comandos de deploy
-    - name: Deploy to VPS
-      uses: appleboy/ssh-action@master
-      with:
-        host: ${{ secrets.VPS_HOST }}
-        username: ${{ secrets.VPS_USERNAME }}
-        key: ${{ secrets.VPS_SSH_PRIVATE_KEY }}
-        script: |
-          # Navega para a pasta do projeto na VPS
-          cd ~/analisador
-
-          # Puxa as últimas alterações do GitHub
-          echo ">>> Puxando alterações do GitHub..."
-          git pull origin main
-
-          # Ativa o ambiente virtual e instala as dependências
-          echo ">>> Instalando dependências..."
-          source .venv/bin/activate
-          pip install -r requirements.txt
-
-          # Reinicia o serviço da aplicação para aplicar as mudanças
-          echo ">>> Reiniciando o serviço da aplicação..."
-          sudo systemctl restart analisador
-          echo ">>> Deploy concluído com sucesso!"
+      - name: Deploy to VPS
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USERNAME }}
+          password: ${{ secrets.VPS_PASSWORD }} # Usando a senha em vez da chave
+          port: 22
+          script: |
+            cd /root/analisador
+            git pull
+            source .venv/bin/activate
+            pip install -r requirements.txt
+            sudo systemctl restart analisador
