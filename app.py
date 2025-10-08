@@ -25,32 +25,35 @@ def analisar_jogo_com_dados_reais(time_casa_nome, time_fora_nome, id_liga):
         avg_gols_fora = (stats_fora['goalsFor'] + stats_casa['goalsAgainst']) / 2 / stats_fora['playedGames']
         tendencia_gols = avg_gols_casa + avg_gols_fora
         
-        # CORREÇÃO APLICADA AQUI: 'palpite' -> 'entrada'
+        # Usa a chave 'entrada' como no seu código original
         if tendencia_gols > 2.8:
-            tips.append({"mercado": "Gols", "entrada": "Mais de 2.5 gols", "justificativa": f"Tendência de gols alta ({tendencia_gols:.2f}).", "confianca": f"{random.randint(75, 90)}"})
+            tips.append({"mercado": "Gols", "entrada": "Mais de 2.5 gols", "justificativa": f"Tendência de gols alta ({tendencia_gols:.2f}).", "confianca": random.randint(75, 90)})
         else:
-            tips.append({"mercado": "Gols", "entrada": "Menos de 2.5 gols", "justificativa": f"Tendência de gols baixa ({tendencia_gols:.2f}).", "confianca": f"{random.randint(70, 85)}"})
+            tips.append({"mercado": "Gols", "entrada": "Menos de 2.5 gols", "justificativa": f"Tendência de gols baixa ({tendencia_gols:.2f}).", "confianca": random.randint(70, 85)})
 
         diferenca_pontos = stats_casa['points'] - stats_fora['points']
-        # CORREÇÃO APLICADA AQUI: 'palpite' -> 'entrada'
         if diferenca_pontos > 5:
-            tips.append({"mercado": "Handicap Asiático", "entrada": f"{stats_casa['team']['name']} -0.5", "justificativa": "Time da casa tem campanha muito superior.", "confianca": f"{random.randint(70, 88)}"})
+            tips.append({"mercado": "Handicap Asiático", "entrada": f"{stats_casa['team']['name']} -0.5", "justificativa": "Time da casa tem campanha muito superior.", "confianca": random.randint(70, 88)})
         elif diferenca_pontos < -5:
-            tips.append({"mercado": "Handicap Asiático", "entrada": f"{stats_fora['team']['name']} -0.5", "justificativa": "Visitante tem campanha muito superior.", "confianca": f"{random.randint(70, 88)}"})
+            tips.append({"mercado": "Handicap Asiático", "entrada": f"{stats_fora['team']['name']} -0.5", "justificativa": "Visitante tem campanha muito superior.", "confianca": random.randint(70, 88)})
         else:
-            tips.append({"mercado": "Handicap Asiático", "entrada": f"{stats_fora['team']['name']} +0.5", "justificativa": "Jogo equilibrado, visitante tem valor no handicap positivo.", "confianca": f"{random.randint(65, 80)}"})
+            tips.append({"mercado": "Handicap Asiático", "entrada": f"{stats_fora['team']['name']} +0.5", "justificativa": "Jogo equilibrado, visitante tem valor no handicap positivo.", "confianca": random.randint(65, 80)})
 
-        # CORREÇÃO APLICADA AQUI: 'palpite' -> 'entrada'
-        tips.append({"mercado": "Escanteios", "entrada": "Mais de 9.5", "justificativa": "Análise simulada.", "confianca": f"{random.randint(65, 85)}"})
-        tips.append({"mercado": "Cartões", "entrada": "Mais de 4.5", "justificativa": "Análise simulada.", "confianca": f"{random.randint(60, 80)}"})
+        tips.append({"mercado": "Escanteios", "entrada": "Mais de 9.5", "justificativa": "Análise simulada.", "confianca": random.randint(65, 85)})
+        tips.append({"mercado": "Cartões", "entrada": "Mais de 4.5", "justificativa": "Análise simulada.", "confianca": random.randint(60, 80)})
 
-        # CORREÇÃO APLICADA AQUI: A chave 'confianca' deve ser um inteiro para o sort funcionar
-        tips.sort(key=lambda x: int(str(x['confianca']).replace('%','')), reverse=True)
+        # Ordena usando a confiança como inteiro
+        tips.sort(key=lambda x: x['confianca'], reverse=True)
         
-        # CORREÇÃO FINAL: O frontend espera 'palpite', então vamos renomear a chave antes de enviar
+        # Prepara o resultado final para o frontend
         resultado_final = {"melhor_aposta": tips[0], "outras_opcoes": tips[1:]}
+        
+        # Loop para formatar a saída para o frontend
         for tip in [resultado_final['melhor_aposta']] + resultado_final['outras_opcoes']:
+            # Renomeia 'entrada' para 'palpite' que o JS espera
             tip['palpite'] = tip.pop('entrada')
+            # Converte a confiança de volta para string com '%' que o JS espera
+            tip['confianca'] = f"{tip['confianca']}%"
 
         return resultado_final
 
