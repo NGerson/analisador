@@ -1,19 +1,30 @@
-        name: Implantar na VPS
+name: Implantar na VPS
+on:
+  push:
+    branches: [ main ]
+jobs: # <-- ESTA LINHA É ESSENCIAL
+  implantar: # <-- E ESTA TAMBÉM
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout do código
+        uses: actions/checkout@v3
+      - name: Implantar na VPS
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.VPS_HOST }}
-          username: deployer  # <-- MUDANÇA AQUI
-          key: ${{ secrets.VPS_SSH_PRIVATE_KEY }} # <-- MUDANÇA AQUI
-          port: 22
-          script: |
-            set -e
-            echo "✅ Conectado ao servidor"
-            cd /var/www/analisador
-            echo "➡️  Puxando atualizações do repositório..."
-            git pull
-            echo "📦 Instalando dependências..."
-            source .venv/bin/activate
-            pip install -r requirements.txt
-            echo "🔄 Reiniciando o serviço da aplicação..."
-            sudo systemctl restart analisador
-            echo "🚀 Deploy concluído com sucesso!"
+          ...
+name: Implantar na VPS
+on:
+  push:
+    branches: [ main ]
+jobs: # <-- ESTA LINHA É ESSENCIAL
+  implantar: # <-- E ESTA TAMBÉM
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout do código
+        uses: actions/checkout@v3
+      - name: Implantar na VPS
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          ...
