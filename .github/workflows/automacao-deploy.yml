@@ -17,7 +17,7 @@ jobs:
         with:
           host: ${{ secrets.VPS_HOST }}
           username: deployer
-          key: ${{ secrets.VPS_DEPLOY_PASSWORD }}
+          password: ${{ secrets.VPS_DEPLOY_PASSWORD }} # <-- USANDO A SENHA
           port: 22
           script: |
             set -e
