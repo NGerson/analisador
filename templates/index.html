@@ -1,115 +1,111 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestão PRO e Tips - Apostador Profissional</title>
-    <link rel="stylesheet" href="/static/css/style.css"> 
-    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
-
+    <title>Gestão PRO e Tips - Apostador Pro</title>
+    <link rel="stylesheet" href="../static/css/style.css">
 </head>
-<body>
+<body class="theme-futebol"> 
+
     <div class="container">
-       <h1>Minha Ferramenta de Análises</h1>
+        <h1>Minha Ferramenta de Análises</h1>
 
         <div class="tabs">
-            <button class="tab-button" data-tab="futebol">⚽ Futebol</button>
-            <button class="tab-button" data-tab="nfl">🏈 NFL</button>
-            <button class="tab-button" data-tab="nba">🏀 NBA</button>
-            <button class="tab-button" data-tab="gestao">📈 Gestão</button>
+            <button class="tab-button active" data-tab="futebol">Futebol</button>
+            <button class="tab-button" data-tab="nfl">NFL</button>
+            <button class="tab-button" data-tab="nba">NBA</button>
+            <button class="tab-button" data-tab="gestao">Gestão</button>
         </div>
 
+        <main>
+            <section id="futebol-tab" class="tab-content active"> 
+                <h2>Análise de Jogo - Futebol</h2>
+                <div id="chat-futebol" class="chat-container">
+                    <p class="bot-message info-message">Olá! Para analisar um jogo de Futebol, digite "Quero Apostar" para receber as instruções.</p>
+                </div>
+                
+                <div class="chat-input-area">
+                    <input type="text" id="chat-input-futebol" placeholder="Time Casa vs Time Fora ou 'Quero Apostar'...">
+                    <button id="send-button-futebol">Enviar</button>
+                </div>
+            </section>
 
-        <!-- Conteúdo da Aba Futebol -->
-        <div id="futebol-tab" class="tab-content">
-            <h2>Análise de Jogo - Futebol</h2>
-            <div id="chat-futebol" class="chat-container">
-                <p class="bot-message">Olá! Para analisar um jogo de Futebol, digite "Quero Apostar" abaixo.</p>
-            </div>
-            <div class="chat-input-area">
-                <input type="text" id="chat-input-futebol" placeholder="Digite 'Quero Apostar' para começar...">
-                <!-- CORREÇÃO APLICADA AQUI -->
-                <button id="send-button-futebol" type="button">Enviar</button>
-            </div>
-        </div>
+            <section id="nfl-tab" class="tab-content">
+                <h2>Análise de Jogo - NFL</h2>
+                <div id="chat-nfl" class="chat-container">
+                    <p class="bot-message info-message">Olá! Para analisar um jogo da NFL, digite "Quero Apostar" para receber as instruções.</p>
+                </div>
+                <div class="chat-input-area">
+                    <input type="text" id="chat-input-nfl" placeholder="Time Casa vs Time Fora ou 'Quero Apostar'...">
+                    <button id="send-button-nfl">Enviar</button>
+                </div>
+            </section>
 
-        <!-- Conteúdo da Aba NFL -->
-        <div id="nfl-tab" class="tab-content">
-            <h2>Análise de Jogo - NFL</h2>
-            <div id="chat-nfl" class="chat-container">
-                <p class="bot-message">Olá! Para analisar um jogo da NFL, digite "Quero Apostar" abaixo.</p>
-            </div>
-            <div class="chat-input-area">
-                <input type="text" id="chat-input-nfl" placeholder="Digite 'Quero Apostar' para começar...">
-                <!-- CORREÇÃO APLICADA AQUI -->
-                <button id="send-button-nfl" type="button">Enviar</button>
-            </div>
-        </div>
+            <section id="nba-tab" class="tab-content">
+                <h2>Análise de Jogo - NBA</h2>
+                <div id="chat-nba" class="chat-container">
+                    <p class="bot-message info-message">Olá! Para analisar um jogo da NBA, digite "Quero Apostar" para receber as instruções.</p>
+                </div>
+                <div class="chat-input-area">
+                    <input type="text" id="chat-input-nba" placeholder="Time Casa vs Time Fora ou 'Quero Apostar'...">
+                    <button id="send-button-nba">Enviar</button>
+                </div>
+            </section>
 
-        <!-- Conteúdo da Aba NBA -->
-        <div id="nba-tab" class="tab-content">
-            <h2>Análise de Jogo - NBA</h2>
-            <div id="chat-nba" class="chat-container">
-                <p class="bot-message">Olá! Para analisar um jogo da NBA, digite "Quero Apostar" abaixo.</p>
-            </div>
-            <div class="chat-input-area">
-                <input type="text" id="chat-input-nba" placeholder="Digite 'Quero Apostar' para começar...">
-                <!-- CORREÇÃO APLICADA AQUI -->
-                <button id="send-button-nba" type="button">Enviar</button>
-            </div>
-        </div>
+            <section id="gestao-tab" class="tab-content">
+                <h2>Controle de Banca e Alavancagem</h2>
+                <div id="controle-banca">
+                    <h3>Configuração Inicial</h3>
+                    <div class="input-form">
+                        <input type="number" id="banca-inicial" placeholder="Banca Inicial" value="1000">
+                        <select id="risco">
+                            <option value="1">Risco Baixo (1%)</option>
+                            <option value="2" selected>Risco Moderado (2%)</option>
+                            <option value="3">Risco Alto (3%)</option>
+                        </select>
+                        <button id="configurar-banca-btn">Configurar Banca</button>
+                    </div>
 
-        <!-- Conteúdo da Aba Gestão -->
-        <div id="gestao-tab" class="tab-content">
-            <h2>Controle de Banca e Alavancagem</h2>
-            <div class="config-form input-form">
-                <h3>Configuração Inicial</h3>
-                <input type="number" id="config-banca-inicial" placeholder="Banca Inicial (R$)">
-                <input type="number" id="config-meta-minima" placeholder="Meta Mínima (R$)">
-                <input type="number" id="config-stake-max" placeholder="Stake Máxima (Teto R$)">
-                <button type="button">Aplicar Configurações</button>
-            </div>
-            <div id="status-panel" class="status-panel">
-                <p>Data Atual: <span id="data-hoje">--/--/----</span></p>
-                <p>Banca Atual: <span id="banca-atual">R$ 0.00</span></p>
-                <p>Stake Máxima: <span id="stake-max">R$ 0.00</span></p> 
-                <p>Apostas Hoje: <span id="apostas-hoje">0</span>/10</p>
-                <div id="alerta-risco" class="alerta"></div>
-            </div>
-            <div class="input-form">
-                <h3>Registro de Aposta</h3>
-                <input type="number" id="input-stake" placeholder="Stake (R$)" min="0.01" step="0.01"> 
-                <input type="number" id="input-odd" placeholder="Odd" step="0.01">
-                <select id="input-resultado">
-                    <option value="">Resultado</option>
-                    <option value="win">WIN</option>
-                    <option value="red">RED</option>
-                    <option value="pending">EM ABERTO</option>
-                </select>
-                <input type="number" id="input-acrescimo" placeholder="Acréscimo (R$)" value="0.00" step="0.01">
-                <button type="button">Registrar Aposta</button>
-            </div>
-            <table id="tabela-apostas">
-                <thead>
-                    <tr>
-                        <th>Data</th>
-                        <th>#</th>
-                        <th>Stake (R$)</th>
-                        <th>Odd</th>
-                        <th>Resultado</th>
-                        <th>Ganho/Perda</th>
-                        <th>Acréscimo</th>
-                        <th>Banca Final</th>
-                        <th>Ação</th>
-                    </tr>
-                </thead>
-                <tbody></tbody>
-            </table>
-            <button id="reset-button" type="button">Resetar Todos os Dados</button>
-        </div>
+                    <div class="status-panel" id="status-gestao">
+                        <p>Banca Atual: <span id="banca-atual">1000.00</span></p>
+                        <p>Stake Padrão: <span id="stake-padrao">20.00</span></p>
+                        <p>Apostas Feitas: <span id="apostas-feitas">0</span></p>
+                        <p>Unidades Ganhas: <span id="unidades-ganhas">0.00</span></p>
+                    </div>
+
+                    <div class="alerta alerta-stop" id="alerta-stop">⚠️ ALERTA: Stop Loss atingido! Pare as operações.</div>
+                    <div class="alerta alerta-limite" id="alerta-limite">⚠️ ALERTA: Você atingiu o limite de unidades/dia.</div>
+                    
+                    <h3>Registro de Apostas</h3>
+                    <div class="input-form">
+                        <input type="text" id="aposta-mercado" placeholder="Mercado (Ex: Acima 2.5)">
+                        <input type="number" id="aposta-odd" placeholder="Odd" step="0.01">
+                        <input type="number" id="aposta-valor" placeholder="Valor (Stake)" step="0.01">
+                        <button id="registrar-aposta-btn">Registrar Aposta</button>
+                    </div>
+
+                    <table id="tabela-apostas">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Mercado</th>
+                                <th>Odd</th>
+                                <th>Valor</th>
+                                <th>Resultado</th>
+                                <th>Ação</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            </tbody>
+                    </table>
+
+                    <button id="reset-button">Resetar Banca</button>
+                </div>
+            </section>
+        </main>
     </div>
 
-  <script src="{{ url_for('static', filename='js/script.js') }}"></script>
-
-</body>
+    <script src="../static/js/script.js"></script>
+    </body>
 </html>
