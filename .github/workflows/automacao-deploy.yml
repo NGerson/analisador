@@ -1,20 +1,46 @@
-- name: Implantar no servidor
-  on:
-     push:
-      branches:
+name: Deploy Contínuo no Servidor VPS
+
+# 1. Gatilho (Trigger): Define quando o workflow deve rodar.
+#    Roda sempre que houver um 'push' na branch 'main'.
+on:
+  push:
+    branches:
       - main
+
+# 2. Jobs: Define a(s) tarefa(s) que serão executadas.
+jobs:
+  deploy:
+    # A máquina virtual onde o código será executado
+    runs-on: ubuntu-latest
+    
+    # 3. Steps: A sequência de ações (passos) do Job.
+    steps:
+      # Passo 1: Faz o download do código do seu repositório para a máquina virtual
+      - name: Checkout do Código
+        uses: actions/checkout@v4
+
+      # Passo 2: Implanta no servidor usando a ação de SSH
+      - name: Implantar no servidor
+        uses: appleboy/ssh-action@master
         with:
-          # IP ou hostname do seu VPS (você pode ter isso em outro secret, como SSH_HOST)
-          host: [31.97.95.109]
-
-          # Usuário que você está usando (no seu caso, provavelmente 'root')
+          # Host: IP ou hostname do seu VPS (corrigido para ser uma string simples)
+          host: 31.97.95.109
+          
+          # Usuário de login no VPS
           username: root
+          
+          # Porta SSH (padrão 22)
+          port: 22 
 
-          # *** ESTE É O PONTO CRÍTICO: Referência ao Secret com a CHAVE PRIVADA ***
+          # CHAVE PRIVADA: Referencia o Secret que você criou no GitHub
           key: ${{ secrets.SSH_PRIVATE_KEY }} 
 
-          port: 22
-
-          # O que a ação deve executar
+          # Comandos que serão executados no servidor após a conexão
           script: |
-            # ... seus comandos de deploy (cd, git pull, docker-compose, etc.)
+            echo "Iniciando processo de deploy no servidor..."
+            # ADICIONE AQUI SEUS COMANDOS DE DEPLOY REAIS:
+            # Exemplo: navegar até a pasta e atualizar o código
+            # cd /var/www/seu-projeto
+            # git pull
+            # docker-compose up -d --build
+            echo "Deploy concluído!"
