@@ -1,5 +1,8 @@
 - name: Implantar no servidor
-        uses: appleboy/ssh-action@master
+  on:
+     push:
+      branches:
+      - main
         with:
           # IP ou hostname do seu VPS (você pode ter isso em outro secret, como SSH_HOST)
           host: [31.97.95.109]
