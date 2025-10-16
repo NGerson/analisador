@@ -1,29 +1,17 @@
-name: Deploy to VPS
-
-on:
-  push:
-    branches:
-      - main
-
-jobs:
-  deploy:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Deploy to server
+- name: Implantar no servidor
         uses: appleboy/ssh-action@master
         with:
-          host: ${{ secrets.VPS_HOST }}
-          username: deployer
-          password: ${{ secrets.VPS_DEPLOY_PASSWORD }} # <-- USANDO A SENHA
+          # IP ou hostname do seu VPS (você pode ter isso em outro secret, como SSH_HOST)
+          host: [31.97.95.109]
+
+          # Usuário que você está usando (no seu caso, provavelmente 'root')
+          username: root
+
+          # *** ESTE É O PONTO CRÍTICO: Referência ao Secret com a CHAVE PRIVADA ***
+          key: ${{ secrets.SSH_PRIVATE_KEY }} 
+
           port: 22
+
+          # O que a ação deve executar
           script: |
-            set -e
-            cd /var/www/analisador
-            git pull
-            source .venv/bin/activate
-            pip install -r requirements.txt
-            sudo systemctl restart analisador
-            echo "Deploy successful!"
+            # ... seus comandos de deploy (cd, git pull, docker-compose, etc.)
