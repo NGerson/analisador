@@ -10,7 +10,6 @@ on:
 # 2. Jobs: Define a(s) tarefa(s) que serão executadas.
 jobs:
   deploy:
-    # A máquina virtual onde o código será executado
     runs-on: ubuntu-latest
     
     # 3. Steps: A sequência de ações (passos) do Job.
@@ -23,24 +22,30 @@ jobs:
       - name: Implantar no servidor
         uses: appleboy/ssh-action@master
         with:
-          # Host: IP ou hostname do seu VPS (corrigido para ser uma string simples)
+          # Host: O IP do seu VPS (31.97.95.109)
           host: 31.97.95.109
           
-          # Usuário de login no VPS
+          # Usuário de login no VPS (confirmado como root)
           username: root
           
           # Porta SSH (padrão 22)
           port: 22 
 
-          # CHAVE PRIVADA: Referencia o Secret que você criou no GitHub
+          # CHAVE PRIVADA: Referencia o Secret no GitHub (agora sem passphrase)
           key: ${{ secrets.SSH_PRIVATE_KEY }} 
 
           # Comandos que serão executados no servidor após a conexão
           script: |
             echo "Iniciando processo de deploy no servidor..."
-            # ADICIONE AQUI SEUS COMANDOS DE DEPLOY REAIS:
-            # Exemplo: navegar até a pasta e atualizar o código
-            # cd /var/www/analisador
-            # git pull
-            # docker-compose up -d --build
+            
+            # 1. NAVEGA PARA A PASTA CORRETA (confirmada em /var/www/analisador)
+            cd /var/www/analisador
+            
+            # 2. PUXA O CÓDIGO MAIS RECENTE DO REPOSITÓRIO
+            git pull
+            
+            # 3. RECONSTRÓI E REINICIA OS CONTAINERS DOCKER
+            # Isso garante que o código novo seja usado e o ambiente seja atualizado.
+            docker-compose up -d --build
+            
             echo "Deploy concluído!"
