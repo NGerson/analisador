@@ -40,7 +40,7 @@ jobs:
             echo "Iniciando processo de deploy no servidor..."
             # ADICIONE AQUI SEUS COMANDOS DE DEPLOY REAIS:
             # Exemplo: navegar até a pasta e atualizar o código
-            # cd /var/www/seu-projeto
+            # cd /var/www/analisador
             # git pull
             # docker-compose up -d --build
             echo "Deploy concluído!"
