@@ -5,7 +5,7 @@ import random # Necessário para o random.randint em analisar_jogo_com_dados_rea
 
 # --- CONFIGURAÇÕES DA API (Você precisa definir isso) ---
 API_BASE_URL = "http://api.football-data.org/v4/" # Exemplo, use a sua URL real
-HEADERS = {'X-Auth-Token': 'SUA_CHAVE_API_AQUI'} # Substitua pela sua chave
+HEADERS = {'X-Auth-Token': 'c246eae154d5464fad88b423dc5d939e'} # Substitua pela sua chave
 
 # A função analisar_jogo_com_dados_reais do seu app.py deve estar aqui ou importada.
 # Por simplicidade, vou colocá-la aqui no exemplo:
